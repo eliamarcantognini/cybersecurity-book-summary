@@ -1,5 +1,11 @@
+# Computer Security - Principles and Practice
+
+## Chapter 1-4 summary
+
 # Table of Contents
 
+- [Computer Security - Principles and Practice](#computer-security---principles-and-practice)
+  - [Chapter 1-4 summary](#chapter-1-4-summary)
 - [Table of Contents](#table-of-contents)
 - [Chapter 1](#chapter-1)
   - [1.1 Computer Security Concepts](#11-computer-security-concepts)
