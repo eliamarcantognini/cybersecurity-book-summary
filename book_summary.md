@@ -102,7 +102,7 @@
       - [Constraints - RBAC$_2$](#constraints---rbac_2)
 - [Tutorials](#tutorials)
   - [T1 - Exposed attack surface (nmap)](#t1---exposed-attack-surface-nmap)
-- [T2 - DES and AES encryption using OpenSSL](#t2---des-and-aes-encryption-using-openssl)
+  - [T2 - DES and AES encryption using OpenSSL](#t2---des-and-aes-encryption-using-openssl)
 
 # Chapter 1
 
@@ -1035,7 +1035,7 @@ We start by using a feature of nmap that is often able to determine what OS (and
 Nmap has a modular structure that is used for integrating adjunctive components. For example, it is possible to enable the execution of one or more scripts that are specifically designed for finding vulnerabilities in the software installed on the targe machine. A typical example is the "vuln" script that is part of the standard nmap distribution: `sudo nmap --script vuln -v <ip_host_address>`, it inspect the services running on the machine and likely some known vulnerabilities have been reported.  
 Another script, much more aggressive, is: `sudo nmap -Pn --script ssh-brute -v <ip_host_address>` which uses a brute-force attack on a exposed service (i.e. ssh). In other words, it tries often used combinations of username and password.
 
-# T2 - DES and AES encryption using OpenSSL
+## T2 - DES and AES encryption using OpenSSL
 
 In GNU/LINUX, encrypting a text using the DES cipher is very easy. In fact, it is sufficient to use the implementation provided by the OpenSSL software tool.  
 Example command: `openssl enc -e -des -salt -in plaintext.txt -out ciphertext.bin -pass pass:cybersecurity`, we obtain a new binary file that contains the ciphered text.  
