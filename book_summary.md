@@ -100,6 +100,8 @@
       - [Base Model - RBAC$_0$](#base-model---rbac_0)
       - [Role Hierarchies - RBAC$_1$](#role-hierarchies---rbac_1)
       - [Constraints - RBAC$_2$](#constraints---rbac_2)
+- [Tutorials](#tutorials)
+  - [T1 - Exposed attack surface (nmap)](#t1---exposed-attack-surface-nmap)
 
 # Chapter 1
 
@@ -1013,3 +1015,21 @@ Constraints provide a means of adapting RBAC to the specifics of administrative 
   Thus, the set of mutually exclusive roles have non overlapping permissions.
 - Cardinality: it refers to setting a maximum number with respect to roles. One such constraint is to set a maximum number of users that can be assigned to a given role.
 - Prerequisite roles: specified by the system, they dictate a user can only be assigned to a particular role if it is already assigned to some other specified role. A prerequisite can be used to structure the implementation of the least privilege concept.
+
+# Tutorials
+
+## T1 - Exposed attack surface (nmap)
+
+Every host that is connected to a network has an exposed attack surface. Even if there are no active services that are accepting requests from the network, there is always a protocol stack that performs many complex operations on the inbound packets that are received from the network. Very often, an online host also provides services that can be accessed from the network. Being able to precisely determine the exposed attack surface of the hosts in our organization is a basic network security procedure.
+
+The network mapper (`nmap`) is an open source tool that has been specifically designed for discovering the host/devices that are connected in a specific network and to probe their exposed attack surface. It is possible to perform the discovering using various protocols, like ICMP or TCP-SYN.  
+Example command: `sudo nmap -sn -v 192.168.1.0/24` (use ICMP), `sudo nmap -sS -v 192.168.1.0/24` (use TCP).
+
+Many tools have been implemented for executing a network discovery. `netdiscover` is another relevant one.
+Example command: `sudo netdiscover -i <network_device> -p`, in this case the network discovery procedure is passive. This means that we are not probing the target devices sending packets on the network but only listening on the network.
+
+After finding one or more hosts to which we are interested for a deeper analysis, we can revert to nmap for performing a port scanning of such devices. Now, we are interested in finding what services are listening to network sockets and are accessible from outside the specific host.  
+We start by using a feature of nmap that is often able to determine what OS (and version) is running on the chosen device: `sudo nmap -O <ip_host_address>`.  We can use `sudo nmap -sT <ip_host_address>` to perform host scanning with the TCP protocol (or `sudo nmap -sU <ip_host_address>` for UDP). We can add `-p0-65535` argument to scan all the existing ports.
+
+Nmap has a modular structure that is used for integrating adjunctive components. For example, it is possible to enable the execution of one or more scripts that are specifically designed for finding vulnerabilities in the software installed on the targe machine. A typical example is the "vuln" script that is part of the standard nmap distribution: `sudo nmap --script vuln -v <ip_host_address>`, it inspect the services running on the machine and likely some known vulnerabilities have been reported.  
+Another script, much more aggressive, is: `sudo nmap -Pn --script ssh-brute -v <ip_host_address>` which uses a brute-force attack on a exposed service (i.e. ssh). In other words, it tries often used combinations of username and password.

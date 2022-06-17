@@ -220,6 +220,11 @@
 </li>
 </ul>
 </li>
+<li><a href="#tutorials">Tutorials</a>
+<ul>
+<li><a href="#t1---exposed-attack-surface-nmap">T1 - Exposed attack surface (nmap)</a></li>
+</ul>
+</li>
 </ul>
 <h1 id="chapter-1">Chapter 1</h1>
 <p>The focus of this chapter is on three fundamental questions:</p>
@@ -1154,6 +1159,17 @@ The many to many relationships between users and roles and between roles and per
 <p>Prerequisite roles: specified by the system, they dictate a user can only be assigned to a particular role if it is already assigned to some other specified role. A prerequisite can be used to structure the implementation of the least privilege concept.</p>
 </li>
 </ul>
+<h1 id="tutorials">Tutorials</h1>
+<h2 id="t1---exposed-attack-surface-nmap">T1 - Exposed attack surface (nmap)</h2>
+<p>Every host that is connected to a network has an exposed attack surface. Even if there are no active services that are accepting requests from the network, there is always a protocol stack that performs many complex operations on the inbound packets that are received from the network. Very often, an online host also provides services that can be accessed from the network. Being able to precisely determine the exposed attack surface of the hosts in our organization is a basic network security procedure.</p>
+<p>The network mapper (<code>nmap</code>) is an open source tool that has been specifically designed for discovering the host/devices that are connected in a specific network and to probe their exposed attack surface. It is possible to perform the discovering using various protocols, like ICMP or TCP-SYN.<br>
+Example command: <code>sudo nmap -sn -v 192.168.1.0/24</code> (use ICMP), <code>sudo nmap -sS -v 192.168.1.0/24</code> (use TCP).</p>
+<p>Many tools have been implemented for executing a network discovery. <code>netdiscover</code> is another relevant one.
+Example command: <code>sudo netdiscover -i &lt;network_device&gt; -p</code>, in this case the network discovery procedure is passive. This means that we are not probing the target devices sending packets on the network but only listening on the network.</p>
+<p>After finding one or more hosts to which we are interested for a deeper analysis, we can revert to nmap for performing a port scanning of such devices. Now, we are interested in finding what services are listening to network sockets and are accessible from outside the specific host.<br>
+We start by using a feature of nmap that is often able to determine what OS (and version) is running on the chosen device: <code>sudo nmap -O &lt;ip_host_address&gt;</code>.  We can use <code>sudo nmap -sT &lt;ip_host_address&gt;</code> to perform host scanning with the TCP protocol (or <code>sudo nmap -sU &lt;ip_host_address&gt;</code> for UDP). We can add <code>-p0-65535</code> argument to scan all the existing ports.</p>
+<p>Nmap has a modular structure that is used for integrating adjunctive components. For example, it is possible to enable the execution of one or more scripts that are specifically designed for finding vulnerabilities in the software installed on the targe machine. A typical example is the &quot;vuln&quot; script that is part of the standard nmap distribution: <code>sudo nmap --script vuln -v &lt;ip_host_address&gt;</code>, it inspect the services running on the machine and likely some known vulnerabilities have been reported.<br>
+Another script, much more aggressive, is: <code>sudo nmap -Pn --script ssh-brute -v &lt;ip_host_address&gt;</code> which uses a brute-force attack on a exposed service (i.e. ssh). In other words, it tries often used combinations of username and password.</p>
 
     </body>
     </html>
