@@ -225,6 +225,7 @@
 <li><a href="#t1---exposed-attack-surface-nmap">T1 - Exposed attack surface (nmap)</a></li>
 </ul>
 </li>
+<li><a href="#t2---des-and-aes-encryption-using-openssl">T2 - DES and AES encryption using OpenSSL</a></li>
 </ul>
 <h1 id="chapter-1">Chapter 1</h1>
 <p>The focus of this chapter is on three fundamental questions:</p>
@@ -1170,6 +1171,11 @@ Example command: <code>sudo netdiscover -i &lt;network_device&gt; -p</code>, in 
 We start by using a feature of nmap that is often able to determine what OS (and version) is running on the chosen device: <code>sudo nmap -O &lt;ip_host_address&gt;</code>.  We can use <code>sudo nmap -sT &lt;ip_host_address&gt;</code> to perform host scanning with the TCP protocol (or <code>sudo nmap -sU &lt;ip_host_address&gt;</code> for UDP). We can add <code>-p0-65535</code> argument to scan all the existing ports.</p>
 <p>Nmap has a modular structure that is used for integrating adjunctive components. For example, it is possible to enable the execution of one or more scripts that are specifically designed for finding vulnerabilities in the software installed on the targe machine. A typical example is the &quot;vuln&quot; script that is part of the standard nmap distribution: <code>sudo nmap --script vuln -v &lt;ip_host_address&gt;</code>, it inspect the services running on the machine and likely some known vulnerabilities have been reported.<br>
 Another script, much more aggressive, is: <code>sudo nmap -Pn --script ssh-brute -v &lt;ip_host_address&gt;</code> which uses a brute-force attack on a exposed service (i.e. ssh). In other words, it tries often used combinations of username and password.</p>
+<h1 id="t2---des-and-aes-encryption-using-openssl">T2 - DES and AES encryption using OpenSSL</h1>
+<p>In GNU/LINUX, encrypting a text using the DES cipher is very easy. In fact, it is sufficient to use the implementation provided by the OpenSSL software tool.<br>
+Example command: <code>openssl enc -e -des -salt -in plaintext.txt -out ciphertext.bin -pass pass:cybersecurity</code>, we obtain a new binary file that contains the ciphered text.<br>
+We can decrypt using <code>openssl enc -d -des -in ciphertext.bin -out plaintext2.txt -pass pass:cybersecurity</code> and we can verify if the file is byte-to-byte identical with plaintext.txt <code>diff plaintext2.txt plaintext.txt</code>.<br>
+It is useful to perform encryption in parallel for reducing the amount of time needed for encrypting a file.</p>
 
     </body>
     </html>
