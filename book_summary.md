@@ -112,6 +112,10 @@
     - [Web-of-Trust](#web-of-trust)
     - [Using GPG for symmetric encryption](#using-gpg-for-symmetric-encryption)
     - [AGE](#age)
+  - [T5 - Example of pharming attack to HTTP and HTTPS](#t5---example-of-pharming-attack-to-http-and-https)
+    - [Attacking HTTP](#attacking-http)
+    - [Attacking HTTPS](#attacking-https)
+    - [Revocation of Certificates](#revocation-of-certificates)
 
 # Chapter 1
 
@@ -1289,3 +1293,32 @@ GPG also implements some symmetric ciphers, for example use `gpg --output foo.tx
 ### AGE
 
 Age is a promising tool for encrypting message and files and it is implemented using Go. It is cross-platform and it already part of many Linux distributions.
+
+## T5 - Example of pharming attack to HTTP and HTTPS
+
+### Attacking HTTP
+
+The general structure of the attack is composed of the following steps:
+
+1. cloning of the pages of the target website + implementing local modifications;
+2. setup of a fake HTTP server that is used to service the pages requested by the victim web browser;
+3. redirections of the request made by the web browser to the fake HTTP server.
+
+The first two points are simple, the third point is the core of the attack. This redirection can be implemented in many different ways: 
+
+- the typical attack pattern is about modifying the DNS host addresses provided by the router to the hosts in the local network. In fact, the DHCP protocol is not only responsible to provide an IP address to every host that is newly connect to the network but also to provide some basic communication parameters such as the IP addresses of the DNS servers and the IP address of the default gateway;
+- by modifying the default gateway;
+- installation, by the attacker, of a rogue DHCP server that provides forged parameters to the clients entering the network. This would be typically combined with a DoS attack to the legitimate DHCP server to slow it down (or stop) its execution;
+- modifying the content of the "/etc/hosts" file that is used by the local DNS resolver (only for single host attack);
+- configuration of (transparent) HTTP proxies;
+- modification of some specific information (e.g. the destination IP address) on the packers in the communication flow, using specific tools that operate at the kernel level such as `iptabled` and `nftables`.
+
+### Attacking HTTPS
+
+The main difference between HTTPS and HTTPS is the usage of an encrypted communication protocol based on TLS. The goal of TLS is to provide confidentiality, integrity and also authenticity to the data stream.  
+For a pharming attack over the HTTPS protocols, the three steps above are not sufficient. It is also necessary to assume the compromission of the SSL/TLS certificate.  
+Since it is possible, but very unlikely, that an attacker is able to compromise a CA then we will assume that the compromission will be only local. The best possibility for the attacker is to attack the integrity of the web browser used by the victim. Also in this case, there are many possible avenues of attack but the simplest consists of adding a new host certificate to the list of trusted certificates recognized by the browser. Note that operation does not need any special execution privilege.
+
+### Revocation of Certificates
+
+A final point that must be considered is the violation of the certificate authority (it does not happen very often). When it happens, all the certificates that have been issued by the CA with the compromised private key must be revoked as soon as possible. The mechanism for the certificate revocation must be implemented in all browser and in all the libraries that make use of encrypted communications that are based on TLS.
