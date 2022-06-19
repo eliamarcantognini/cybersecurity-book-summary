@@ -116,6 +116,7 @@
     - [Attacking HTTP](#attacking-http)
     - [Attacking HTTPS](#attacking-https)
     - [Revocation of Certificates](#revocation-of-certificates)
+  - [T6 - Offline password cracking using John the Ripper (JtR)](#t6---offline-password-cracking-using-john-the-ripper-jtr)
 
 # Chapter 1
 
@@ -1322,3 +1323,7 @@ Since it is possible, but very unlikely, that an attacker is able to compromise 
 ### Revocation of Certificates
 
 A final point that must be considered is the violation of the certificate authority (it does not happen very often). When it happens, all the certificates that have been issued by the CA with the compromised private key must be revoked as soon as possible. The mechanism for the certificate revocation must be implemented in all browser and in all the libraries that make use of encrypted communications that are based on TLS.
+
+## T6 - Offline password cracking using John the Ripper (JtR)
+
+a
