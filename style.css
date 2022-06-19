@@ -1,11 +1,12 @@
 html, body {
     font-family: "Noto Sans", -apple-system, BlinkMacSystemFont, "Segoe WPC",
       "Segoe UI", system-ui, "Ubuntu", "Droid Sans", sans-serif;
-    font-size: 14px;
+    font-size: 16px;
     line-height: 1.6;
     text-align: justify;
     padding: 0px;
   }
   .main-content {
     padding: 16px 0px 0px 0px;
+    font-size: 16px;
   }
