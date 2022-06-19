@@ -103,6 +103,11 @@
 - [Tutorials](#tutorials)
   - [T1 - Exposed attack surface (nmap)](#t1---exposed-attack-surface-nmap)
   - [T2 - DES and AES encryption using OpenSSL](#t2---des-and-aes-encryption-using-openssl)
+  - [T3 - Practical dictionary attack to the symmetric encryption](#t3---practical-dictionary-attack-to-the-symmetric-encryption)
+    - [First attempt](#first-attempt)
+    - [Second attempt](#second-attempt)
+    - [Third attempt](#third-attempt)
+    - [Fourth attempt](#fourth-attempt)
 
 # Chapter 1
 
@@ -1041,3 +1046,210 @@ In GNU/LINUX, encrypting a text using the DES cipher is very easy. In fact, it i
 Example command: `openssl enc -e -des -salt -in plaintext.txt -out ciphertext.bin -pass pass:cybersecurity`, we obtain a new binary file that contains the ciphered text.  
 We can decrypt using `openssl enc -d -des -in ciphertext.bin -out plaintext2.txt -pass pass:cybersecurity` and we can verify if the file is byte-to-byte identical with plaintext.txt `diff plaintext2.txt plaintext.txt`.  
 It is useful to perform encryption in parallel for reducing the amount of time needed for encrypting a file.
+
+## T3 - Practical dictionary attack to the symmetric encryption
+
+Let's suppose that an attacker has been able to intercept and record a message that has been encrypted using a symmetric block cipher. And assume that the attacker knows the specific cipher used for encrypting the message and the different encryption parameters. In practice, the whole security (i.e. confidentiality) of the transmission is based on a strong cipher and the confidentiality of the symmetric encryption key.  
+The command used by the sender to encrypt the message is: `openssl enc -e -aes-256-cbc -iter 1 -md sha512 -in plaintext.txt -out ciphertext.bin -pass pass:<password>`. Note that use a password for getting a key is called *derivation*. In the command, the hash function "hash512" is run a single time.  
+The approach followed by the attacker to break the encryption is to try all the possible keys. This operation must be done considering two important aspects:
+
+- avoid false negative: a specific word is tried but not detected as the correct key for decrypting the message;
+- minimize or avoid false positives: a word that is unable to decrypt the message in the correct plaintext is reported as correct.
+
+### First attempt
+
+```sh
+# Stage: 1	"Testing all the keys in a given dictionary"
+# Italian dictionary (common Italian words)
+DICT="/usr/share/dict/italian"
+
+# Checking the number of input parameters
+if [ "$#" -ne 1 ]; then
+    echo "brute-force-openssl-1.sh: ERROR (Illegal number of parameters)"
+    echo "syntax: brute-force-openssl-1.sh ciphertext.bin"
+    
+    exit 1
+fi
+
+# Ciphertext (input parameter)
+INPUT_FILE="$1"
+
+echo "brute-force-openssl-1.sh: running..."
+
+# Checking all the words in the dictionary
+while read tested_key; do
+ # Assuming to know the used encryption algorithm and parameters
+ openssl enc -d -aes-256-cbc -iter 1 -md sha512 -in $1 -out plaintext-test.txt -pass pass:$tested_key &> /dev/null
+
+ # If the decryption has not returned errors
+ if [ $? -eq 0 ]
+ then
+  # I found the key!!!
+  echo -e -n "Found: >>>$tested_key<<<\tand the recovered messages is: "
+  cat plaintext-test.txt
+  echo ""
+  break
+ fi
+done <$DICT
+
+rm -f output.txt plaintext-test.txt
+```
+
+The first attempt produce a result that is not what we expected. That's because of the semantics of the errors reported by OpenSSL. It returns an error only if there is an alignment problem of the generated output with respect to the expected output (i.e., the different output sizes differ). In practice, brute-forcing a message encrypted by using OpenSSL and following this approach would generate a relevant number of false positives. Verify that using the second approach.
+
+### Second attempt
+
+```sh
+# Stage: 2 "Testing all the keys in a given dictionary"
+#   "Not stopping after the first success"
+
+# Italian dictionary (common Italian words)
+DICT="/usr/share/dict/italian"
+
+# Checking the number of input parameters
+if [ "$#" -ne 1 ]; then
+    echo "brute-force-openssl-2.sh: ERROR (Illegal number of parameters)"
+    echo "syntax: brute-force-openssl-2.sh ciphertext.bin"
+    
+    exit 1
+fi
+
+# Ciphertext (input parameter)
+INPUT_FILE="$1"
+
+echo "brute-force-openssl-2.sh: running..."
+
+# Checking all the words in the dictionary
+while read tested_key; do
+ # Assuming to know the used encryption algorithm and parameters
+ openssl enc -d -aes-256-cbc -iter 1 -md sha512 -in $1 -out plaintext-test.txt -pass pass:$tested_key &> /dev/null
+
+ # If the decryption has not returned errors
+ if [ $? -eq 0 ]
+ then
+  # I found a possible key!!!
+  echo -e -n "Found: >>>$tested_key<<<\tand the recovered messages is: "
+  cat plaintext-test.txt
+  echo ""
+ fi
+done <$DICT
+
+rm -f output.txt plaintext-test.txt
+
+```
+
+We have solved the problem of false positives but we introduced false negative. We can use a simple heuristic function that is based on another assumption: the message contains at least a given number of consecutive letters. Of course it's not a realistic assumption.
+
+### Third attempt
+
+```sh
+# Stage: 3 "Testing all the keys in a given dictionary"
+#   "Not stopping after the first success"
+#   "Adding a simple heuristic to reduce false positives"
+
+# Italian dictionary (common Italian words)
+DICT="/usr/share/dict/italian"
+
+# Checking the number of input parameters
+if [ "$#" -ne 1 ]; then
+    echo "brute-force-openssl-3.sh: ERROR (Illegal number of parameters)"
+    echo "syntax: brute-force-openssl-3.sh ciphertext.bin"
+    
+    exit 1
+fi
+
+# Ciphertext (input parameter)
+INPUT_FILE="$1"
+
+echo "brute-force-openssl-3.sh: running..."
+
+# Checking all the words in the dictionary
+while read tested_key; do
+ # Assuming to know the used encryption algorithm and parameters
+ openssl enc -d -aes-256-cbc -iter 1 -md sha512 -in $1 -out plaintext-test.txt -pass pass:$tested_key &> /dev/null
+
+ # If the decryption has not returned errors
+ if [ $? -eq 0 ]
+ then
+  # I found a possible key!!!
+  
+  # Simple heuristic - I look for a sequence of at least 5 consecutive characters
+  egrep -an --color '.*[[:alpha:]]{5,}' plaintext-test.txt
+  
+  if [ $? -eq 0 ]
+  then
+   echo -e -n "Found: >>>$tested_key<<<\tand the recovered messages is: "
+   cat plaintext-test.txt
+   echo ""
+  fi
+ fi
+done <$DICT
+
+rm -f output.txt plaintext-test.txt
+
+```
+
+We can see that even using the proposed heuristic, we have been unable to avoid all the false positives even if we have been able to reduce them.  
+
+### Fourth attempt
+
+```sh
+# Stage: 4 "Testing all the keys in a given dictionary"
+#   "Not stopping after the first success"
+#   "Adding a simple heuristic to reduce false positives"
+#   "Let's go parallel!" (this stage is composed of 2 files:
+#    - main (sequential bootstrap)
+#    - satellite (parallel execution)
+
+#############
+# main
+#############
+
+# Italian dictionary (common Italian words)
+DICT="/usr/share/dict/italian"
+
+# Checking the number of input parameters
+if [ "$#" -ne 1 ]; then
+ echo "brute-force-openssl-4-main.sh: ERROR (Illegal number of parameters)"
+ echo "syntax: brute-force-openssl-4-main.sh ciphertext.bin"
+    
+ exit 1
+fi
+
+# Ciphertext (input parameter)
+INPUT_FILE="$1"
+
+echo "brute-force-openssl-4-main.sh: running... (parallel execution of many workers)"
+
+# Using GNU parallel to execute in parallel the encryption (and hopefully to speed up operations)
+cat $DICT | parallel --pipe -N 10000 --jobs 4 --max-args=1 ./brute-force-openssl-4-satellite.sh $1
+#############
+# satellite
+#############
+# echo "...worker $$ is running..."
+
+while LINE='$\n' read -r tested_key; do
+    
+ openssl enc -d -aes-256-cbc -iter 1 -md sha512 -in $1 -out plaintext-test-$$.txt -pass pass:$tested_key &> /dev/null
+
+ # If the decryption has not returned errors
+ if [ $? -eq 0 ]
+ then
+  # I found a possible key!!!
+  
+  # Simple heuristic - I look for a sequence of at least 5 consecutive characters
+  egrep -an --color '.*[[:alpha:]]{5,}' plaintext-test-$$.txt
+  
+  if [ $? -eq 0 ]
+  then
+   echo -e -n "Found: >>>$tested_key<<<\tand the recovered messages is: "
+   cat plaintext-test-$$.txt
+   echo ""
+  fi
+ fi
+
+ rm -f plaintext-test-$$.txt
+done
+```
+
+To speed up the execution of the dictionary attack we can use the GNU parallel tool. To do that we need a main script that controls the execution of many satellite scripts.

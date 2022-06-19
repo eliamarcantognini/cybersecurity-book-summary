@@ -224,6 +224,14 @@
 <ul>
 <li><a href="#t1---exposed-attack-surface-nmap">T1 - Exposed attack surface (nmap)</a></li>
 <li><a href="#t2---des-and-aes-encryption-using-openssl">T2 - DES and AES encryption using OpenSSL</a></li>
+<li><a href="#t3---practical-dictionary-attack-to-the-symmetric-encryption">T3 - Practical dictionary attack to the symmetric encryption</a>
+<ul>
+<li><a href="#first-attempt">First attempt</a></li>
+<li><a href="#second-attempt">Second attempt</a></li>
+<li><a href="#third-attempt">Third attempt</a></li>
+<li><a href="#fourth-attempt">Fourth attempt</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -1176,6 +1184,196 @@ Another script, much more aggressive, is: <code>sudo nmap -Pn --script ssh-brute
 Example command: <code>openssl enc -e -des -salt -in plaintext.txt -out ciphertext.bin -pass pass:cybersecurity</code>, we obtain a new binary file that contains the ciphered text.<br>
 We can decrypt using <code>openssl enc -d -des -in ciphertext.bin -out plaintext2.txt -pass pass:cybersecurity</code> and we can verify if the file is byte-to-byte identical with plaintext.txt <code>diff plaintext2.txt plaintext.txt</code>.<br>
 It is useful to perform encryption in parallel for reducing the amount of time needed for encrypting a file.</p>
+<h2 id="t3---practical-dictionary-attack-to-the-symmetric-encryption">T3 - Practical dictionary attack to the symmetric encryption</h2>
+<p>Let's suppose that an attacker has been able to intercept and record a message that has been encrypted using a symmetric block cipher. And assume that the attacker knows the specific cipher used for encrypting the message and the different encryption parameters. In practice, the whole security (i.e. confidentiality) of the transmission is based on a strong cipher and the confidentiality of the symmetric encryption key.<br>
+The command used by the sender to encrypt the message is: <code>openssl enc -e -aes-256-cbc -iter 1 -md sha512 -in plaintext.txt -out ciphertext.bin -pass pass:&lt;password&gt;</code>. Note that use a password for getting a key is called <em>derivation</em>. In the command, the hash function &quot;hash512&quot; is run a single time.<br>
+The approach followed by the attacker to break the encryption is to try all the possible keys. This operation must be done considering two important aspects:</p>
+<ul>
+<li>avoid false negative: a specific word is tried but not detected as the correct key for decrypting the message;</li>
+<li>minimize or avoid false positives: a word that is unable to decrypt the message in the correct plaintext is reported as correct.</li>
+</ul>
+<h3 id="first-attempt">First attempt</h3>
+<pre><code class="language-sh"><div><span class="hljs-comment"># Stage: 1	&quot;Testing all the keys in a given dictionary&quot;</span>
+<span class="hljs-comment"># Italian dictionary (common Italian words)</span>
+DICT=<span class="hljs-string">&quot;/usr/share/dict/italian&quot;</span>
+
+<span class="hljs-comment"># Checking the number of input parameters</span>
+<span class="hljs-keyword">if</span> [ <span class="hljs-string">&quot;<span class="hljs-variable">$#</span>&quot;</span> -ne 1 ]; <span class="hljs-keyword">then</span>
+    <span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;brute-force-openssl-1.sh: ERROR (Illegal number of parameters)&quot;</span>
+    <span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;syntax: brute-force-openssl-1.sh ciphertext.bin&quot;</span>
+    
+    <span class="hljs-built_in">exit</span> 1
+<span class="hljs-keyword">fi</span>
+
+<span class="hljs-comment"># Ciphertext (input parameter)</span>
+INPUT_FILE=<span class="hljs-string">&quot;<span class="hljs-variable">$1</span>&quot;</span>
+
+<span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;brute-force-openssl-1.sh: running...&quot;</span>
+
+<span class="hljs-comment"># Checking all the words in the dictionary</span>
+<span class="hljs-keyword">while</span> <span class="hljs-built_in">read</span> tested_key; <span class="hljs-keyword">do</span>
+ <span class="hljs-comment"># Assuming to know the used encryption algorithm and parameters</span>
+ openssl enc -d -aes-256-cbc -iter 1 -md sha512 -<span class="hljs-keyword">in</span> <span class="hljs-variable">$1</span> -out plaintext-test.txt -pass pass:<span class="hljs-variable">$tested_key</span> &amp;&gt; /dev/null
+
+ <span class="hljs-comment"># If the decryption has not returned errors</span>
+ <span class="hljs-keyword">if</span> [ $? -eq 0 ]
+ <span class="hljs-keyword">then</span>
+  <span class="hljs-comment"># I found the key!!!</span>
+  <span class="hljs-built_in">echo</span> -e -n <span class="hljs-string">&quot;Found: &gt;&gt;&gt;<span class="hljs-variable">$tested_key</span>&lt;&lt;&lt;\tand the recovered messages is: &quot;</span>
+  cat plaintext-test.txt
+  <span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;&quot;</span>
+  <span class="hljs-built_in">break</span>
+ <span class="hljs-keyword">fi</span>
+<span class="hljs-keyword">done</span> &lt;<span class="hljs-variable">$DICT</span>
+
+rm -f output.txt plaintext-test.txt
+</div></code></pre>
+<p>The first attempt produce a result that is not what we expected. That's because of the semantics of the errors reported by OpenSSL. It returns an error only if there is an alignment problem of the generated output with respect to the expected output (i.e., the different output sizes differ). In practice, brute-forcing a message encrypted by using OpenSSL and following this approach would generate a relevant number of false positives. Verify that using the second approach.</p>
+<h3 id="second-attempt">Second attempt</h3>
+<pre><code class="language-sh"><div><span class="hljs-comment"># Stage: 2 &quot;Testing all the keys in a given dictionary&quot;</span>
+<span class="hljs-comment">#   &quot;Not stopping after the first success&quot;</span>
+
+<span class="hljs-comment"># Italian dictionary (common Italian words)</span>
+DICT=<span class="hljs-string">&quot;/usr/share/dict/italian&quot;</span>
+
+<span class="hljs-comment"># Checking the number of input parameters</span>
+<span class="hljs-keyword">if</span> [ <span class="hljs-string">&quot;<span class="hljs-variable">$#</span>&quot;</span> -ne 1 ]; <span class="hljs-keyword">then</span>
+    <span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;brute-force-openssl-2.sh: ERROR (Illegal number of parameters)&quot;</span>
+    <span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;syntax: brute-force-openssl-2.sh ciphertext.bin&quot;</span>
+    
+    <span class="hljs-built_in">exit</span> 1
+<span class="hljs-keyword">fi</span>
+
+<span class="hljs-comment"># Ciphertext (input parameter)</span>
+INPUT_FILE=<span class="hljs-string">&quot;<span class="hljs-variable">$1</span>&quot;</span>
+
+<span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;brute-force-openssl-2.sh: running...&quot;</span>
+
+<span class="hljs-comment"># Checking all the words in the dictionary</span>
+<span class="hljs-keyword">while</span> <span class="hljs-built_in">read</span> tested_key; <span class="hljs-keyword">do</span>
+ <span class="hljs-comment"># Assuming to know the used encryption algorithm and parameters</span>
+ openssl enc -d -aes-256-cbc -iter 1 -md sha512 -<span class="hljs-keyword">in</span> <span class="hljs-variable">$1</span> -out plaintext-test.txt -pass pass:<span class="hljs-variable">$tested_key</span> &amp;&gt; /dev/null
+
+ <span class="hljs-comment"># If the decryption has not returned errors</span>
+ <span class="hljs-keyword">if</span> [ $? -eq 0 ]
+ <span class="hljs-keyword">then</span>
+  <span class="hljs-comment"># I found a possible key!!!</span>
+  <span class="hljs-built_in">echo</span> -e -n <span class="hljs-string">&quot;Found: &gt;&gt;&gt;<span class="hljs-variable">$tested_key</span>&lt;&lt;&lt;\tand the recovered messages is: &quot;</span>
+  cat plaintext-test.txt
+  <span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;&quot;</span>
+ <span class="hljs-keyword">fi</span>
+<span class="hljs-keyword">done</span> &lt;<span class="hljs-variable">$DICT</span>
+
+rm -f output.txt plaintext-test.txt
+
+</div></code></pre>
+<p>We have solved the problem of false positives but we introduced false negative. We can use a simple heuristic function that is based on another assumption: the message contains at least a given number of consecutive letters. Of course it's not a realistic assumption.</p>
+<h3 id="third-attempt">Third attempt</h3>
+<pre><code class="language-sh"><div><span class="hljs-comment"># Stage: 3 &quot;Testing all the keys in a given dictionary&quot;</span>
+<span class="hljs-comment">#   &quot;Not stopping after the first success&quot;</span>
+<span class="hljs-comment">#   &quot;Adding a simple heuristic to reduce false positives&quot;</span>
+
+<span class="hljs-comment"># Italian dictionary (common Italian words)</span>
+DICT=<span class="hljs-string">&quot;/usr/share/dict/italian&quot;</span>
+
+<span class="hljs-comment"># Checking the number of input parameters</span>
+<span class="hljs-keyword">if</span> [ <span class="hljs-string">&quot;<span class="hljs-variable">$#</span>&quot;</span> -ne 1 ]; <span class="hljs-keyword">then</span>
+    <span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;brute-force-openssl-3.sh: ERROR (Illegal number of parameters)&quot;</span>
+    <span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;syntax: brute-force-openssl-3.sh ciphertext.bin&quot;</span>
+    
+    <span class="hljs-built_in">exit</span> 1
+<span class="hljs-keyword">fi</span>
+
+<span class="hljs-comment"># Ciphertext (input parameter)</span>
+INPUT_FILE=<span class="hljs-string">&quot;<span class="hljs-variable">$1</span>&quot;</span>
+
+<span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;brute-force-openssl-3.sh: running...&quot;</span>
+
+<span class="hljs-comment"># Checking all the words in the dictionary</span>
+<span class="hljs-keyword">while</span> <span class="hljs-built_in">read</span> tested_key; <span class="hljs-keyword">do</span>
+ <span class="hljs-comment"># Assuming to know the used encryption algorithm and parameters</span>
+ openssl enc -d -aes-256-cbc -iter 1 -md sha512 -<span class="hljs-keyword">in</span> <span class="hljs-variable">$1</span> -out plaintext-test.txt -pass pass:<span class="hljs-variable">$tested_key</span> &amp;&gt; /dev/null
+
+ <span class="hljs-comment"># If the decryption has not returned errors</span>
+ <span class="hljs-keyword">if</span> [ $? -eq 0 ]
+ <span class="hljs-keyword">then</span>
+  <span class="hljs-comment"># I found a possible key!!!</span>
+  
+  <span class="hljs-comment"># Simple heuristic - I look for a sequence of at least 5 consecutive characters</span>
+  egrep -an --color <span class="hljs-string">&#x27;.*[[:alpha:]]{5,}&#x27;</span> plaintext-test.txt
+  
+  <span class="hljs-keyword">if</span> [ $? -eq 0 ]
+  <span class="hljs-keyword">then</span>
+   <span class="hljs-built_in">echo</span> -e -n <span class="hljs-string">&quot;Found: &gt;&gt;&gt;<span class="hljs-variable">$tested_key</span>&lt;&lt;&lt;\tand the recovered messages is: &quot;</span>
+   cat plaintext-test.txt
+   <span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;&quot;</span>
+  <span class="hljs-keyword">fi</span>
+ <span class="hljs-keyword">fi</span>
+<span class="hljs-keyword">done</span> &lt;<span class="hljs-variable">$DICT</span>
+
+rm -f output.txt plaintext-test.txt
+
+</div></code></pre>
+<p>We can see that even using the proposed heuristic, we have been unable to avoid all the false positives even if we have been able to reduce them.</p>
+<h3 id="fourth-attempt">Fourth attempt</h3>
+<pre><code class="language-sh"><div><span class="hljs-comment"># Stage: 4 &quot;Testing all the keys in a given dictionary&quot;</span>
+<span class="hljs-comment">#   &quot;Not stopping after the first success&quot;</span>
+<span class="hljs-comment">#   &quot;Adding a simple heuristic to reduce false positives&quot;</span>
+<span class="hljs-comment">#   &quot;Let&#x27;s go parallel!&quot; (this stage is composed of 2 files:</span>
+<span class="hljs-comment">#    - main (sequential bootstrap)</span>
+<span class="hljs-comment">#    - satellite (parallel execution)</span>
+
+<span class="hljs-comment">#############</span>
+<span class="hljs-comment"># main</span>
+<span class="hljs-comment">#############</span>
+
+<span class="hljs-comment"># Italian dictionary (common Italian words)</span>
+DICT=<span class="hljs-string">&quot;/usr/share/dict/italian&quot;</span>
+
+<span class="hljs-comment"># Checking the number of input parameters</span>
+<span class="hljs-keyword">if</span> [ <span class="hljs-string">&quot;<span class="hljs-variable">$#</span>&quot;</span> -ne 1 ]; <span class="hljs-keyword">then</span>
+ <span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;brute-force-openssl-4-main.sh: ERROR (Illegal number of parameters)&quot;</span>
+ <span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;syntax: brute-force-openssl-4-main.sh ciphertext.bin&quot;</span>
+    
+ <span class="hljs-built_in">exit</span> 1
+<span class="hljs-keyword">fi</span>
+
+<span class="hljs-comment"># Ciphertext (input parameter)</span>
+INPUT_FILE=<span class="hljs-string">&quot;<span class="hljs-variable">$1</span>&quot;</span>
+
+<span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;brute-force-openssl-4-main.sh: running... (parallel execution of many workers)&quot;</span>
+
+<span class="hljs-comment"># Using GNU parallel to execute in parallel the encryption (and hopefully to speed up operations)</span>
+cat <span class="hljs-variable">$DICT</span> | parallel --pipe -N 10000 --<span class="hljs-built_in">jobs</span> 4 --max-args=1 ./brute-force-openssl-4-satellite.sh <span class="hljs-variable">$1</span>
+<span class="hljs-comment">#############</span>
+<span class="hljs-comment"># satellite</span>
+<span class="hljs-comment">#############</span>
+<span class="hljs-comment"># echo &quot;...worker $$ is running...&quot;</span>
+
+<span class="hljs-keyword">while</span> LINE=<span class="hljs-string">&#x27;$\n&#x27;</span> <span class="hljs-built_in">read</span> -r tested_key; <span class="hljs-keyword">do</span>
+    
+ openssl enc -d -aes-256-cbc -iter 1 -md sha512 -<span class="hljs-keyword">in</span> <span class="hljs-variable">$1</span> -out plaintext-test-$$.txt -pass pass:<span class="hljs-variable">$tested_key</span> &amp;&gt; /dev/null
+
+ <span class="hljs-comment"># If the decryption has not returned errors</span>
+ <span class="hljs-keyword">if</span> [ $? -eq 0 ]
+ <span class="hljs-keyword">then</span>
+  <span class="hljs-comment"># I found a possible key!!!</span>
+  
+  <span class="hljs-comment"># Simple heuristic - I look for a sequence of at least 5 consecutive characters</span>
+  egrep -an --color <span class="hljs-string">&#x27;.*[[:alpha:]]{5,}&#x27;</span> plaintext-test-$$.txt
+  
+  <span class="hljs-keyword">if</span> [ $? -eq 0 ]
+  <span class="hljs-keyword">then</span>
+   <span class="hljs-built_in">echo</span> -e -n <span class="hljs-string">&quot;Found: &gt;&gt;&gt;<span class="hljs-variable">$tested_key</span>&lt;&lt;&lt;\tand the recovered messages is: &quot;</span>
+   cat plaintext-test-$$.txt
+   <span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;&quot;</span>
+  <span class="hljs-keyword">fi</span>
+ <span class="hljs-keyword">fi</span>
+
+ rm -f plaintext-test-$$.txt
+<span class="hljs-keyword">done</span>
+</div></code></pre>
+<p>To speed up the execution of the dictionary attack we can use the GNU parallel tool. To do that we need a main script that controls the execution of many satellite scripts.</p>
 
     </body>
     </html>
