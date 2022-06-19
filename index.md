@@ -111,6 +111,8 @@
       - [Attacking HTTPS](#attacking-https)
       - [Revocation of Certificates](#revocation-of-certificates)
     - [T6 - Offline password cracking using John the Ripper (JtR)](#t6---offline-password-cracking-using-john-the-ripper-jtr)
+      - [PDF cracking](#pdf-cracking)
+      - [GPU-based cracking of passwords](#gpu-based-cracking-of-passwords)
 
 ## Chapter 1
 
@@ -1320,4 +1322,27 @@ A final point that must be considered is the violation of the certificate author
 
 ### T6 - Offline password cracking using John the Ripper (JtR)
 
-a
+John the Ripper (JtR) is one of the most famous tool for password cracking. Its cracking efficiency depends on many factors such as the execution architecture that is available (e.g., CPU vs GPU) and it is full of useful functionalities.  
+JtR is open source and freeware, but it also offer a pro version.  
+First of all download and compile JtR (wget [source.tar.gz] -> tar xvzf [source.tar.gz] -> cd [source_dir] -> make [architecture_target]). The scripts will be in john_dir/run directory.
+
+With a working instance of JtR, we can verify the strength of the passwords that are used in a specific system.  
+In all modern UNIx-like systems the information about the users is split between two different files:
+
+- the first file contains the usernames and some ancillary information about users (readable by all users);
+- the second file contains the salted and hashed passwords (readable only with privileges).
+
+JtR requires inputting a single file with all the information described above. This can be easily done using a tool bundled with it: `./unshadow <PASS_FILE> <SHADOW_FILE> passwd.1`.
+
+JtR is a complex tool with many functionalities, the simples way to use it is the *single crack* mode: `./john --single passwd.1`. Using this mode, JtR tries to guess the passwords using only the information that is available in the input file and adding only a limited amount of common variations. This is a very quick approach that can guess only very weak password.  
+A more complex approach is the usage of a *wordlist* (e.g. a dictionary): `./john --wordlist=password.lst --rules passwd.1`. The `password.lst` file is given by JtR but it is possible to use other and custom wordlists. A bit more advanced mode combines the usage of the wordlist with a set of rules for the variations of the words included in the list: `./john --wordlist=password.lst --rules passwd.1`.
+Another approach is called *incremental* and it is based on an exhaustive search of all the possible password. Even a brute-force attack can be conducted smartly. For example, it is possible to choose the frequency of characters based on the language typically used by the attacked users. The command is: `./john --incremental passwd.1`.  
+When the execution is finished, all the recovered passwords can be found with `./john passwd.1 -show`.
+
+#### PDF cracking
+
+JtR can be also used to verify the quality of passwords used to protect pdf documents, but JtR is unable to work directly on pdf files so the first step is to extract the hashed password that is contained in each pdf file: `./pdf2john <filename>.pdf hash.txt`. The obtained hash code can now be processed by JtR: `./john --format=pdf hash.txt`.
+
+#### GPU-based cracking of passwords
+
+GPUs are execution architectures that often permit a relevant speedup in the execution of password cracking if compared with CPUs. The structure of the problem is quite good for parallelization and the modern GPUs often implement (in hardware) the main encryption ciphers. JtR has limited GPU support, and more appropriate tools are available for password cracking on GPU, for example Hashcat.
