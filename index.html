@@ -232,6 +232,13 @@
 <li><a href="#fourth-attempt">Fourth attempt</a></li>
 </ul>
 </li>
+<li><a href="#t4---usage-examples-of-gpg">T4 - Usage examples of GPG</a>
+<ul>
+<li><a href="#web-of-trust">Web-of-Trust</a></li>
+<li><a href="#using-gpg-for-symmetric-encryption">Using GPG for symmetric encryption</a></li>
+<li><a href="#age">AGE</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -1374,6 +1381,28 @@ cat <span class="hljs-variable">$DICT</span> | parallel --pipe -N 10000 --<span 
 <span class="hljs-keyword">done</span>
 </div></code></pre>
 <p>To speed up the execution of the dictionary attack we can use the GNU parallel tool. To do that we need a main script that controls the execution of many satellite scripts.</p>
+<h2 id="t4---usage-examples-of-gpg">T4 - Usage examples of GPG</h2>
+<p>GPG (GnuPG) us a complete implementation of the OpenPGP standard for sending and receiving secure emails. GPG implements both symmetric and asymmetric encryption ciphers and it is typically used for encrypting email but it can be also used for encrypting generic input files.<br>
+The first step is about generating a new couple of keys for an identity: <code>gpg --gen-key</code>. The default parameters used are fair but they can be tuned. After some time, the keys are generated and then tagged with a specific identifier. It is possible to list all the public (<code>gpg --list-public-keys</code>) or private (<code>gpg --list-private-keys</code>) keys that are stored in our system.<br>
+Just after creating the new key-pair, it's important to generate and secure the corresponding revocation certificate.</p>
+<p>To make available to the public the public-key we can use various systems. For example we can publish a text file in a website (<code>gpg --export -a &lt;Key-ID&gt; &gt; mykey.asc</code>) or we can use a key server (<code>gpg --send-keys --keyserver &lt;KEY_SERVER&gt; &lt;KEY_ID&gt;</code>). A key server is an infrastructure that is specifically dedicated to the publication of public keys and their management. Obviously it possible to query the key server for finding already existing public keys (<code>gpg --search-keys &lt;EMAIL_LINKED_TO_KEY&gt;</code>) and we can import that public key to our keyring.<br>
+Assuming we imported the key linked to the email &quot;foo@bar.xy&quot;, we can encrypt a document that needs to be delivered in a confidential way to the owner of the public key: <code>gpg --encrypt --recipient 'foo@bar.xy' foo.txt</code>. If it's not important to hide the content of the message but only to authenticate its originator we use <code>gpg --output foo.txt.sig --sign foo.txt</code>.<br>
+It is also possible to combine both operations to get CIA: <code>gpg --encrypt --sign --recipient 'foo@bar.xy' foo.txt</code>.</p>
+<h3 id="web-of-trust">Web-of-Trust</h3>
+<p>Consider the problem related to the authenticity of the public-key that we used for encrypting our message to preserve confidentiality. The mechanism that is typically used by gpg is called <em>web-of-trust</em>. The basic idea of the web-of-trust is that after carefully checking the identity of the people that we know (in real life) and their matching with their corresponding public-key,, then we can validate this match by signing their public-key (using our private-key). In practice, signing a key of someone has the effect of extending our web-of-trust and moreover, maybe we can accept to trust someone that is unknown to us that has been validated by one or more friends of ours.<br>
+Since it results quite uneasy to bring with us the printed version of our public-key it is preferred to use the fingerprint (<code>gpg --fingerprint &lt;KEY_ID&gt;</code>). The procedure is as follows:</p>
+<ol>
+<li>print out on paper the fingerprint and the identifier of the public-key;</li>
+<li>provide all that to the person that is willing to sign our public key;</li>
+<li>get the key to be signed using <code>gpg --keyserver &lt;keyserver&gt; --recv-keys &lt;Keys_ID&gt;</code>;</li>
+<li>after a final check to verify the information, proceed with key signature using <code>gpg --sign-key &lt;KEY_ID&gt;</code>;</li>
+<li>propagate the signing operation to a key server to build a public web-of-trust using <code>gpg --keyserver &lt;keyserver&gt; --send-key &lt;KEY_ID&gt;</code>.</li>
+</ol>
+<p>It is possible to list all the signature that have been collected by a specific public-key using <code>gpg --list-sigs &lt;KEY_ID&gt;</code>.</p>
+<h3 id="using-gpg-for-symmetric-encryption">Using GPG for symmetric encryption</h3>
+<p>GPG also implements some symmetric ciphers, for example use <code>gpg --output foo.txt.gpg --symmetric foo.txt</code> to encrypts an input file using the default symmetric cipher provided by GPG. The different ciphers can be listed with <code>gpg --version</code>.</p>
+<h3 id="age">AGE</h3>
+<p>Age is a promising tool for encrypting message and files and it is implemented using Go. It is cross-platform and it already part of many Linux distributions.</p>
 
     </body>
     </html>

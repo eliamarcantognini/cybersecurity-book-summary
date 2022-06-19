@@ -108,6 +108,10 @@
     - [Second attempt](#second-attempt)
     - [Third attempt](#third-attempt)
     - [Fourth attempt](#fourth-attempt)
+  - [T4 - Usage examples of GPG](#t4---usage-examples-of-gpg)
+    - [Web-of-Trust](#web-of-trust)
+    - [Using GPG for symmetric encryption](#using-gpg-for-symmetric-encryption)
+    - [AGE](#age)
 
 # Chapter 1
 
@@ -1253,3 +1257,35 @@ done
 ```
 
 To speed up the execution of the dictionary attack we can use the GNU parallel tool. To do that we need a main script that controls the execution of many satellite scripts.
+
+
+## T4 - Usage examples of GPG
+
+GPG (GnuPG) us a complete implementation of the OpenPGP standard for sending and receiving secure emails. GPG implements both symmetric and asymmetric encryption ciphers and it is typically used for encrypting email but it can be also used for encrypting generic input files.  
+The first step is about generating a new couple of keys for an identity: `gpg --gen-key`. The default parameters used are fair but they can be tuned. After some time, the keys are generated and then tagged with a specific identifier. It is possible to list all the public (`gpg --list-public-keys`) or private (`gpg --list-private-keys`) keys that are stored in our system.  
+Just after creating the new key-pair, it's important to generate and secure the corresponding revocation certificate.
+
+To make available to the public the public-key we can use various systems. For example we can publish a text file in a website (`gpg --export -a <Key-ID> > mykey.asc`) or we can use a key server (`gpg --send-keys --keyserver <KEY_SERVER> <KEY_ID>`). A key server is an infrastructure that is specifically dedicated to the publication of public keys and their management. Obviously it possible to query the key server for finding already existing public keys (`gpg --search-keys <EMAIL_LINKED_TO_KEY>`) and we can import that public key to our keyring.  
+Assuming we imported the key linked to the email "foo@bar.xy", we can encrypt a document that needs to be delivered in a confidential way to the owner of the public key: `gpg --encrypt --recipient 'foo@bar.xy' foo.txt`. If it's not important to hide the content of the message but only to authenticate its originator we use `gpg --output foo.txt.sig --sign foo.txt`.  
+It is also possible to combine both operations to get CIA: `gpg --encrypt --sign --recipient 'foo@bar.xy' foo.txt`.
+
+### Web-of-Trust
+
+Consider the problem related to the authenticity of the public-key that we used for encrypting our message to preserve confidentiality. The mechanism that is typically used by gpg is called *web-of-trust*. The basic idea of the web-of-trust is that after carefully checking the identity of the people that we know (in real life) and their matching with their corresponding public-key,, then we can validate this match by signing their public-key (using our private-key). In practice, signing a key of someone has the effect of extending our web-of-trust and moreover, maybe we can accept to trust someone that is unknown to us that has been validated by one or more friends of ours.  
+Since it results quite uneasy to bring with us the printed version of our public-key it is preferred to use the fingerprint (`gpg --fingerprint <KEY_ID>`). The procedure is as follows:
+
+1. print out on paper the fingerprint and the identifier of the public-key;
+2. provide all that to the person that is willing to sign our public key;
+3. get the key to be signed using `gpg --keyserver <keyserver> --recv-keys <Keys_ID>`;
+4. after a final check to verify the information, proceed with key signature using `gpg --sign-key <KEY_ID>`;
+5. propagate the signing operation to a key server to build a public web-of-trust using `gpg --keyserver <keyserver> --send-key <KEY_ID>`.
+
+It is possible to list all the signature that have been collected by a specific public-key using `gpg --list-sigs <KEY_ID>`.
+
+### Using GPG for symmetric encryption
+
+GPG also implements some symmetric ciphers, for example use `gpg --output foo.txt.gpg --symmetric foo.txt` to encrypts an input file using the default symmetric cipher provided by GPG. The different ciphers can be listed with `gpg --version`.
+
+### AGE
+
+Age is a promising tool for encrypting message and files and it is implemented using Go. It is cross-platform and it already part of many Linux distributions.
