@@ -1,3 +1,7 @@
+---
+layout: default
+---
+
 # Cybersecurity 21-22 summary
 
 - [Cybersecurity 21-22 summary](#cybersecurity-21-22-summary)
