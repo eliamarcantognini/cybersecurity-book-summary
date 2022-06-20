@@ -137,6 +137,37 @@
         - [Author, Intent, and Punishment](#author-intent-and-punishment)
         - [Worm Hunters](#worm-hunters)
       - [Concluding Remarks](#concluding-remarks)
+    - [What are the risks of electronic voting and internet voting?](#what-are-the-risks-of-electronic-voting-and-internet-voting)
+      - [What do we want from our voting systems?](#what-do-we-want-from-our-voting-systems)
+      - [There is a lot at stake in elections](#there-is-a-lot-at-stake-in-elections)
+      - [What is electronic voting?](#what-is-electronic-voting)
+        - [E-Voting](#e-voting)
+        - [I-Voting](#i-voting)
+      - [What are the security issues involved in e-voting?](#what-are-the-security-issues-involved-in-e-voting)
+        - [Accuracy](#accuracy)
+        - [Audits](#audits)
+        - [The inherent security flaws in the Voluntary Voting System Guidelines](#the-inherent-security-flaws-in-the-voluntary-voting-system-guidelines)
+        - [Real-word security issues](#real-word-security-issues)
+        - [Updates to the Voluntary Voting System Guidelines](#updates-to-the-voluntary-voting-system-guidelines)
+      - [E-voting in a perfect world](#e-voting-in-a-perfect-world)
+        - [Auditing before an election](#auditing-before-an-election)
+        - [Open-source code](#open-source-code)
+        - [How do you know the verified software is on the polling machines?](#how-do-you-know-the-verified-software-is-on-the-polling-machines)
+        - [Paper auditing](#paper-auditing)
+      - [Is e-voting a good idea?](#is-e-voting-a-good-idea)
+      - [I-Voting](#i-voting-1)
+        - [I-voting procedural issues](#i-voting-procedural-issues)
+        - [Threats to voter computers](#threats-to-voter-computers)
+        - [Attacks against election infrastructure](#attacks-against-election-infrastructure)
+        - [Auditing](#auditing)
+        - [Verifying the code](#verifying-the-code)
+        - [Verifying votes](#verifying-votes)
+        - [Coercion](#coercion)
+      - [Estionia versus the rest of the world](#estionia-versus-the-rest-of-the-world)
+        - [Digital infrastructure](#digital-infrastructure)
+        - [Do you trust your government to be able to secure such a critical IT project?](#do-you-trust-your-government-to-be-able-to-secure-such-a-critical-it-project)
+        - [There's more at stake in other countries](#theres-more-at-stake-in-other-countries)
+      - [E-voting & i-voting: How do they compare with paper ballots?](#e-voting--i-voting-how-do-they-compare-with-paper-ballots)
 
 ## Chapter 1
 
@@ -1717,3 +1748,188 @@ The Worm has shown us that we are all affected by events in our shared environme
 
 Finally, this whole episode should cause us to think about the ethics and laws concerning access to computers. Since the technology we use has developed so quickly, it is not always simple to determine where the proper boundaries of moral action may be.  
 Entire businesses are noe dependent, wisely or not, on computer systems. People's money, careers, and possibly even their lives may be dependent on the undisturbed functioning of computers. As a society, we cannot afford the consequences of condoning or encouraging reckless or ill-considered behaviour that threatens or damages computer systems, especially by individuals who do not understand the consequences of their actions. As professionals, computer scientists and computer engineers cannot afford to tolerate the romanticization of computer vandals and computer criminals, and we must take the lead by setting proper examples. Let us hope there are not further incidents to underscore this particular lesson.
+
+### What are the risks of electronic voting and internet voting?
+
+E-voting refers to voting that involve electronic systems in any way. I-Voting refers to voting online.
+
+#### What do we want from our voting systems?
+
+A useful voting system needs to balance out a range of key features. Security is definitely one of the most critical factors but we also want to ensure that the counted votes are authentic.  
+For the final vote count to accurately represent the will of the people, the other properties that need to be considered in voting systems are:
+
+- Accuracy: we want the final vote count to accurately represent the choices of the people.
+- Verifiability: it's important to be able to check the accuracy of the vote and determine whether an election has been tampered with.
+- Anonymity: the need for anonymity in voting is complex, because we don't want anonymity in all aspects. We need to be able to verify who is voting in order to prevent people from voting multiple times or committing other types of fraud. However, we want the votes themselves to be anonymous.
+- Accessibility: accessibility needs to take all voters into account.
+- Speed: it's best if we can receive the results in a relatively short period of time.
+- Cost-effectiveness: we could have the most secure or accurate system in the world, but if it costs 10 times a nation's GDP to implement, it wouldn't be practical.
+
+One of the main issues is that many of these properties compete against each other.  
+The main ideas that we will be focusing on are security, verification, and anonymity. One of the largest complications is that an anonymous vote makes it very difficult to verify whether the result is accurate or if there has been a security compromise.
+
+#### There is a lot at stake in elections
+
+The winner of an election has a significant influence over the future of a country, its alliances, its trade, its taxes and its regulations. When you consider the amount of money and power at stake, this is a pretty big deal for other nations, major businesses and other interest groups.  
+Foreign actors have been trying to influence the outcomes of elections in their favor for a very long time. This included targeted propaganda campaigns through social media platforms such as Facebook, hacking into political databases and strategically releasing the information, as well as attacks on voter databases and electronic voting machines themselves.
+
+A common argument for e-voting is "if we can secure online banking, then we should be able to make online voting secure". If we are looking at it from a personal perspective, most people's bank accounts simply aren't worth enough to justify attacking them. Anyway, accounts are hardly as safe as people think. Criminals are constantly coming up with ways to drain people's bank accounts.  
+When it comes to elections, the problem is that you can't really insure them. Can a country afford to have its election manipulated by enemies? What if an election was compromised and the people never found out?
+
+#### What is electronic voting?
+
+There are two types, e-voting and i-voting, each of which can be implemented in a range of ways. These variations have their own unique advantages and complications.
+
+##### E-Voting
+
+E-voting still takes place at central polling locations, with observers overlooking the process. The difference between e-voting and paper voting is that e-voting involves using technology in any of the following processes:
+
+- Ballot casting: e-voting systems may use technology for casting the vote itself. They can include direct-recording electronic (DRE) voting machines, which have touchscreens or other interfaces that voters can cast their ballots on.
+- Tabulation: a paper-based voting system can also be considered e-voting if machines are used in the counting process. Systems that involve punch cards or coloring in a box can be termed e-voting if they use machines such as optical scanners to count the votes.
+- Transmission: it can also be considered e-voting if paper-based votes are used alongside human counting, but the results of polling stations are sent via the internet or other networks to the central tallying location.
+
+##### I-Voting
+
+Remote e-voting, also known as i-voting, uses the internet to allow people to vote from essentially anywhere. One of the main downsides is that many key processes occur away from the eyes of human observers, so it can be impossible to know whether or not a vote has been manipulated.
+
+#### What are the security issues involved in e-voting?
+
+When e-voting is involved in the ballot casting process, it generally involves systems such as direct-recording electronic (DRE) voting machines. When a person votes through the interface, their choice is recorded directly on the machine. When the election finishes, the machines total their votes and then store them on removable memory cards and as printouts. The results are then transferred to a central counting location either psychically or over a local network.  
+There are a number of benefits to these systems. The main ones are that they speed up the vote counting process, they make it easier for those with disabilities to vote, they can make the election process cheaper in the long run, and they can help to reduce waste. These machines also eliminate the ambiguity of paper ballots that have been marked improperly.  
+Despite this, they come with a number of different issues, The most significant one is how can we know whether the final result is an accurate representation of the votes that were cast? There is a common maxim in the computer security world that you can only trust software tha you programmed yourself.  
+The above statement may seem a little extreme, but it was backed up by a 2009 decision by the Federal Consitutional Court of Germany:
+
+> The use of voting machines which electronically record the voters' votes and electronically ascertain the election result only meets the constitutional requirements if the essential steps of the voting and of the ascertainment of the result can be examined reliably and without any specialist knowledge of the subject.
+
+The German court's argument may not convince everyone, but this is far from the only issue that appears in e-voting systems.
+
+##### Accuracy
+
+According to Michael D Byrne's paper, DREs have an error rate of one to two percent. This means that between one and two percent of votes may not be counted, or could go towards the incorrect party. This isn't worried about too much, because the error rate should theoretically affect all parties equally. This holds true if everyone in the electorate uses the same machines, but what if only parts of a country use voting machines, while other parts use ballot papers? Such a hybrid system could lead to a biased result.
+
+##### Audits
+
+To confirm the accuracy of the result and that no tampering has taken place, audits need to take place before, during and after the election. Before the election, one of the most important types of audit involves verifying that the voting machines themselves are working properly. In the US, this is done along the Voluntary Voting System Guidelines.
+
+##### The inherent security flaws in the Voluntary Voting System Guidelines
+
+While they feature some good recommendations, the guidelines also leave a number of gaping security holes and they are open to interpretation. The guidelines focus more on the technical aspects, and ignore the processes that need to be in place so that these systems can be effective.  
+The guidelines also neglect important processes such as social engineering training for staff, the security of the voting machines when they are in storage, password storage protocols, and penetration testing. The lack of system-wide penetration testing present a significant security oversight.  
+The problems will only be found out after the hackers have breached the system and a disaster is at hand. This is why the lack of penetration testing in the guidelines is such a massive oversight.  
+Since the guidelines only cover the systems that record the votes and those that tabulate them, there can be glaring security holes in other electronic voting technology. Electronic voter registration systems and pollbooks are left out. This means that there isn't even a federal guideline of how these systems should be secured, let alone set-in-stone regulations.  
+The voluntary voting system guidelines simply aren't comprehensive enough to secure something as important as an election. Even with these guidelines in place, their real-world implementations leave a lot to be desidered.
+
+##### Real-word security issues
+
+The list of security issues are omitted in this summary. But those and other security flaws show that the e-voting system that are currently used in the US are inappropriate for securing elections.
+
+##### Updates to the Voluntary Voting System Guidelines
+
+The good news is that the federal guidelines for e-voting systems are set to be updated. The proposed Voluntary Voting System Guidelines 2.0 still feature numerous security gaps. Just like the current version of the guidelines, they focus on technical aspects rather than procedure, which can be just as important when it comes to security. Again, they ignore e-voter registration systems and pollbooks, which also need to be secured.  
+While the new guidelines do feature some positive steps, they are simply not holistic enough to provide a secure framework for elections.
+
+#### E-voting in a perfect world
+
+Let's examine at e-voting from a hypothetical point of view. We will ignore the human error and sloppy implementations that we see in practice, and instead look at how these systems could work in a best case scenario.
+
+##### Auditing before an election
+
+Before an election, the code and the hardware need to be audited to make sure that the machines have not been tampered with and are free from error. Since this is a hypothetical scenario, let's say that new federal regulations have been brought in, which provide a cohesive and comprehensive framework to verify the security of any machine that is used in the electoral process.  
+If we theoretically did fix the guidelines, the next issue we would have is who would audit it, and how could we trust them? The most obvious choice would be for some kind of private, community or independent government body to audit the machines and make sure that everything is implemented correctly. But how could we trust whichever entity is responsible? The difference between this and most other trust-based scenarios that you could name, is that there is a lot more at stake in an election, so there is much greater potential for corruption.  
+Considering how much money is at stake and that we know that adversaries are already motivated to disrupt elections, it would be unwise to trust that such a small group of individuals could not be corrupted. But there is an alternative: open source code!
+
+##### Open-source code
+
+If we feel that there is too much at stake to trust a small group, then we could use election software that is open source instead. This means that the code is freely published online, and anyone can inspect it to make sure that there are no errors or indications of tampering. At the moment, the e-voting machine industry runs on proprietary code, meaning that no one can publicly verify whether or not the machines works as they say they do. This is obviously a huge security flaw.
+
+##### How do you know the verified software is on the polling machines?
+
+How can we know that the legitimate software is actually on the voting machine in front of us? Perhaps it's possible for each machine to be inspected by any member of the community before the election begins. But how can voters know whether or not the machine has been tampered with after the initial inspection?  
+A system can seem to be running normally even though it may actually be manipulating the vote. It's alarming to think that an election could be tampered with without anyone being aware. Most of these concerns apply to the central vote counting machines as well. They could be tampered with in many different ways. On top of this, there is also the potential for the vote count to be altered while it is transmitted between local machines and the central system.
+
+##### Paper auditing
+
+Paper audit trails have been proposed as a solution to many of the above problems. Voter Verified Paper Audit Trails (VVPATs) include a number of different systems that allow voters to choose their candidates on e-voting machines and then have a paper record printed out.  
+In one of the most common methods, voters are able to verify their vote by checking the result of a printed ballot, however, this ballot is kept at the polling booth.  
+Let's work through each of the problems that can come with these kinds of systems:
+
+- The system can only accurately verify the results if a statistically significant number of people check the printed records.
+- Voters may not be willing to take the time to recast their vote if it is recorded incorrectly, which negates the system.
+- There can be printer errors.
+- The machines are still vulnerable to malware which could manipulate the digital record.
+- They are more expensive and more difficult to administer than paperless e-voting systems.
+
+VVPATs seem to negate a lot of the benefits. When you also take the negative of VVPATs into account, it just seems like an over-engineered process that doesn't really give any significant advantages over a traditional paper ballot system.
+
+#### Is e-voting a good idea?
+
+You might argue that some of the vulnerabilities mentioned in the above scenarios are extreme, and you would be right. But as we have mentioned, the stakes in an election are also extreme, so it's only reasonable that we should hope for the security of our election systems to be as airtight as possible.  
+E-voting machines do have a number of positives, but it is hard to justify them when you consider the potential for disaster. THese systems complicate the process significantly and introduce a number of points where massive failure could occur. Considering that the democracy of nations is at stake, and there is the possibility that election could be tampered with without anyone's knowledge, it's hard to justify the risks that come with electronic voting systems.
+
+#### I-Voting
+
+Also known as remote e-voting, seems like a far more appealing system than either using paper ballots or e-voting. It's appealing because it seems easier and more accesible, although this doesn't necessarily translate to increased voter turnout as some studies found.  
+Other benefits include faster results, while it also saves man hours in counting and other administrative tasks. Polling stations can be smaller, because they handle a reduced number of voters.  
+A study from the University of Tallinn concluded that i-voting ends up being almost 50 percent cheaper than paper voting.  
+As i-voting is currently practiced in Estonia, it appears to be more secure than the implementations of e-voting in the US. In some aspects it also has advantages over paper voting. Despite this, i-voting still has many of itts own risks, and the systems need to be continuously improved to provide security in the long term. It's also important to note that other countries would face significant challenges if they chouse to adopt a similar system.  
+We will focus on the security risks in the Estionian system, since it is the only one which is widely used. These include procedural issues, attacks against PCs or election servers, verification and coercion.
+
+##### I-voting procedural issues
+
+Securing a remote elction involves more than just the right technology - it's important that adequate procedures and oversight are also in place. Operational security is in place for many processes, as well as contingency plans for when things go wrong. These include multiple observers overseeing critical aspects of the system, as well as releasing videos of certain processes.  
+Despite this, human error is universal, and researchers have witnessed numerous acts that could compromise the security of the elections. These include elections officials entering their passwords in full view of cameras, and using a personal USB stick to transfer election results.  
+These small oversights could expose the openings that hackers need to get into election systems. These kinds of errors have the potential to completely endanger an election.
+
+##### Threats to voter computers
+
+According to the Estonian National Election Committee, the voter's PC is the "... weakest link of the e-voting procedure...", since its security is left up to the voter. Many computers already have malware without the user knowing, and this poses great risks to the security of the vote. Given how much is at stake in an election, it's reasonable to assume that an enemy may try to manipulate the victim's vote in favor of the attacker's party. It's also possible for attackers to build a fake voting client. If either of these attacks occurred on a large scale, they could completely undermine the validity of an election.  
+Despite this, it is unlikely that attacks against so many computers could go on undetected so a new election could be scheduled if necessary.
+
+##### Attacks against election infrastructure
+
+In Estonia, a number of procedures check that hardware is free from malware. There are also reasonable security practices in place to secure hardware during the election. Even though these measures are active, it's not infeasible that a number of election officials could be compromised and may tamper with the hardware.  
+A team of researchers led by J. Alex Halderman simulated Estonia's election systems in their laboratory and found that it was possible to infect the vote counter with malware and alter the count without being detected. Under such an attack, it's theoretically possible for the election to be altered without anyone knowing.
+
+##### Auditing
+
+One of the most important parts of any election system is that there are checks in place to verify the integrity of the election process and its result. The Estonian system involves auditors who monitor the elections and issue reports based on their findings. On top of this, observers from the public can also sign up to watch over the elections and provide feedback. Election officials film many key processes and provide public documentation about many of them.
+
+##### Verifying the code
+
+In 2013, the Estonian National Election Committee made the majority of its code available on GitHub. There was also some criticism for not releasing the entirety of the code. The Free Software Foundation Europe claimed that the code for other components involved in the voting process also needed to be released, and that "the client side software must also be published as Free Software". They allege that in its current state, the client could be used to spread spyware, and that a fully open license would allow more people to fix bugs.  
+Tanel Tammet responded by saying: "there's no reason at all why there should be consent to make one's own variations on this code".  
+Tarvi Martens also defended the release, acknowledging that many in the community may have wanted to be able to work on the code themselves. "But that's not our aim", he said, "The development of such a system must be kept under control and centrally coordinated".  
+A report from researchers at the University of Oxford found that part of the unpublished code "is focused on malware detection and avoidance at the voter's machine". Publishing it would help attackers create malware that could avoid detection.
+
+##### Verifying votes
+
+In 2015, an app was launched that allowed Estonian voters to check whether their votes had been recorded correctly. To verify their vote, they have to use a separate device to the one that they voted on, so attackers would have to compromise both in order to disrupt the verification system. While this verification process is a positive step, it does not necessarily mean that all votes will still be recorded correctly in the final tally.
+
+##### Coercion
+
+Voting is generally done anonymously to make sure that people can truly express their democratic will. This is why paper ballot systems tend to involve a person checking off their name, having a ballot handed to them, and then going off to a controlled environment where they can privately cast their vote according to their true wishes. I-voting happens in an uncontrolled environment, so the anonymity of an individual's vote cannot be guaranteed. This issue is not unique to i-voting, as postal votes can also be vulnerable to coercion.  
+To minimize this risk, Estonia's internet voting is conducted during an early voting period where a voter can change their ballot as many times as they want. A person cal also override their i-vote later on by casting a physical ballot. This system makes it much more difficult for coercion to succeed, because victims can just change their votes afterward.
+
+#### Estionia versus the rest of the world
+
+Estonia is a great example of what is possible in i-voting. One of the biggest questions is whether something similar could be implemented in other countries. The short answer is that at this stage, it's probably a bad idea.
+
+##### Digital infrastructure
+
+One of the main reasons why the Estonian system would be difficult for other countries is that Estonia already has considerable digital infrastructure in place that is lacking in other nations. The centerpiece when it comes to i-voting is the digital identity card, which has a public and private key pair used to digitally sign documents. For a similar system to work in other countries, they would need ID cards in place, linked to digital signature
+
+##### Do you trust your government to be able to secure such a critical IT project?
+
+Let's be honest, many governments colossally screw up their IT infrastructure. Do you really trust your government to be able to secure something as crucial as an i-voting system?
+
+##### There's more at stake in other countries
+
+Estonia is relatively small country with a GDP that is a tiny fraction of the US. Since there is so much more at stake in countries like the US and China, we have to expect that other nations will be far more motivated to disrupt their elections than Estonia's.
+
+We can't be sure whether or not Estonia's vote has been altered so far. Even if its systems have been secure, it doesn't necessarily mean that these would be adequate to protect a nation that has a lot more at stake.
+
+#### E-voting & i-voting: How do they compare with paper ballots?
+
+Paper ballots also have their faults, although one of their greatest advantages is that it's essentially impossible for large-scale manipulation to go unnoticed. The results of paper-based elections can still be altered on a small level. Things like ballot stuffing and fraudulent voting certainly do happen in paper voting systems. Despite this, the effects are generally quite small!  
+When compared to both e-voting and i-voting, paper-based voting has a much lower potential for disaster to strike and for democracy to be undermined in a massive way.  
+At the end of the day, the risk of large-scale, yet undetected vote manipulation may be quite small for both e-voting and i-voting. But is it really worth the risk of something so catastrophic happening, especially when paper voting offers such a simple alternative?
