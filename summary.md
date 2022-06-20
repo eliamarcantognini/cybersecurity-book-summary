@@ -113,6 +113,8 @@
     - [T6 - Offline password cracking using John the Ripper (JtR)](#t6---offline-password-cracking-using-john-the-ripper-jtr)
       - [PDF cracking](#pdf-cracking)
       - [GPU-based cracking of passwords](#gpu-based-cracking-of-passwords)
+  - [Mandatory Readings](#mandatory-readings)
+    - [MR1 - The Internet of Things is wildly insecure and often unpatchable](#mr1---the-internet-of-things-is-wildly-insecure-and-often-unpatchable)
 
 ## Chapter 1
 
@@ -1346,3 +1348,29 @@ JtR can be also used to verify the quality of passwords used to protect pdf docu
 #### GPU-based cracking of passwords
 
 GPUs are execution architectures that often permit a relevant speedup in the execution of password cracking if compared with CPUs. The structure of the problem is quite good for parallelization and the modern GPUs often implement (in hardware) the main encryption ciphers. JtR has limited GPU support, and more appropriate tools are available for password cracking on GPU, for example Hashcat.
+
+## Mandatory Readings 
+
+### MR1 - The Internet of Things is wildly insecure and often unpatchable
+
+We're at a crisis point now with embedded systems, which includes the IoT. These computers are riddled with insecurities -- and there's no good way to patch them. All of these devices are connected to the Internet! The IoT will put computers into all sorts of consumer devices. The industries producing these devices are even less capable of fixing the problem than the PC and software industries were in the crisis happened in mid-1990s. If we don't solve this soon, we're in for a security disaster as hackers figure out that it's easier to hack routers than computers.
+
+But first, to understand the problem, you need to understand the embedded systems market.  
+Typically, these systems are powered by specialized computer chips made by companies such as Broadcom, Qualcomm, and Marvell. These chips are cheap, and the profit margins slim. Aside from price, the way the manufacturers differentiate themselves from each other is by features and bandwidth. They typically put a version of the Linux OS onto the chips, as well as a bunch of other open-source and proprietary components and drivers.  
+The system manufacturers choose a chip based on price and features, and then build a router, server, or whatever. They don't do a lot of engineering, either. The brand-name company on the box may add a user interface and maybe some new features, make sure everything works, and they're done, too.  
+The problem with this process is that no one entity has any incentive, expertise, or even ability to patch the software once it's shipped. The chip manufacturer is busy shipping the next version of the chip, and the ODM is busy upgrading its product to work with this next chip. Maintaining the older chips and products just isn't a priority. And the software is old, even when the device is new.  
+To make matters worse, it's often impossible to patch the software or upgrade the components to the latest version. Often,t he complete source code isn't available. Even when a patch is possible, it's rarely applied. Users usually have to manually download and install relevant patches. But since users never get alerted about security updates, and don't have the expertise to manually administer these devices, it doesn't happen. The result is hundreds of millions of devices that have been sitting on the Internet, unpatched and insecure, for the last five to ten years.  
+Hackers are starting to notice. Malware *DNS Changer* attacks home routers as well as computers and more attacks in the last months. All it will take is some easy-to-use hacker tools for the script kiddies to get into the game.
+
+And the IoT will only make this problem worse, as the Internet becomes flooded with new embedded devices that will be equally poorly maintained and unpatchable. But routers and modems pose a particular problem, because they're:
+
+1. between users and the Internet;
+2. more powerful and more general in function than other embedded devices;
+3. the one 24/7 computing device in the house, and are a natural place for lots of new features.
+
+We were here before (~mid-1990s) with personal computer, and we fixed the problem. But disclosing vulnerabilities in an effort to force vendors to fix the problem won't work the same way as with embedded systems. The last time, the problem was computers, ones mostly not connected to the Internet, and slow-spreading viruses. The scale is different today: more devices, more vulnerability, viruses spreading faster on the Internet, and less technical expertise on both the vendor and the user sides. Plus vulnerabilities that are impossible to patch.
+
+We have an incipient disaster in front of us. It's just a matter of when.
+
+We have to put pressure on embedded system vendors to design their systems better. We need open-source driver software so third-party vendors and ISPs can provide security tools and software updates for as long as the device is in use. We need automatic update mechanisms to ensure they get installed.  
+The economic incentives point to large ISPs as th driver for change. Whether they're to blame or not, the ISPs are the ones who get the service calls for crashes.
