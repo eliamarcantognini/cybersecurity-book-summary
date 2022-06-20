@@ -115,6 +115,11 @@
       - [GPU-based cracking of passwords](#gpu-based-cracking-of-passwords)
   - [Mandatory Readings](#mandatory-readings)
     - [MR1 - The Internet of Things is wildly insecure and often unpatchable](#mr1---the-internet-of-things-is-wildly-insecure-and-often-unpatchable)
+    - [MR2 - Reflections on Trusting Trust](#mr2---reflections-on-trusting-trust)
+      - [Stage 1](#stage-1)
+      - [Stage 2](#stage-2)
+      - [Stage 3](#stage-3)
+      - [Moral](#moral)
 
 ## Chapter 1
 
@@ -1374,3 +1379,129 @@ We have an incipient disaster in front of us. It's just a matter of when.
 
 We have to put pressure on embedded system vendors to design their systems better. We need open-source driver software so third-party vendors and ISPs can provide security tools and software updates for as long as the device is in use. We need automatic update mechanisms to ensure they get installed.  
 The economic incentives point to large ISPs as th driver for change. Whether they're to blame or not, the ISPs are the ones who get the service calls for crashes.
+
+### MR2 - Reflections on Trusting Trust
+
+To what extent should one trust a statement that a program is free of Trojan horses? Perhaps it is more important to trust the people who wrote the software.
+
+#### Stage 1
+
+Let's start with a exercise. The problem is to write a source program that, when compiled and executed, will produce as output an exact copy of its source.
+
+```c
+char s[] = {
+  '\t', '0', '\n', '}', ';',
+ '\n', '\n', '/', '*', '\n',
+  [other 213 chars...], 0
+  };
+
+/*
+ * The string s is a representation of the body
+ * of this program from '0' to the end
+ */
+
+main(){
+  int i;
+  printf("char\ts[]={\n");
+  for(i=0; s[i]; i++)
+    printf("\t%d, \n", s[i]);
+  printf("%s", s);
+}
+```
+
+The snippet above shows a self-reproducing program in the C programming language. This entry demonstrates the technique and has two important properties that we need to complete the story:
+
+1. This program can be easily written by another program.
+2. This program can contain an arbitrary amount of excess baggage what will be reproduced along with the main algorithm.
+
+#### Stage 2
+
+What we are about to describe is one of many "chicken and egg" problems that arise when compilers are written in their own language. C allows a string construct to specify an initialized character array. The individual characters in the string can be escaped to represent unprintable characters.
+
+```c
+...
+c = next();
+if (c != '\\')
+  return(c);
+c = next();
+if (c == '\\')
+  return('\\);
+if (c == 'n')
+  return('\n');
+...
+```
+
+The snippet above is an idealization of the code in the C compiler that interprets the character escape sequence. This is an amazing piece of code. It "knows" in a completely portable way what character code is compiled for a new line in any character set. The act of knowing then allows it to recompile itself, thus perpetuating the knowledge. Suppose we wish to alter the C compiler to include the sequence "\v" to represent the vertical tab character. We simply extent the snippet above with:
+
+```c
+...
+if (c == 'v')
+  return('\v');
+...
+```
+
+We then recompile the C compiler but since the binary version of the compiler does not know about "\v" the source is not legal C. We look up on an ASCII chart that a vertical tab is decimal 11. We alter our source (about "\v") like:
+
+```c
+...
+if (c == 'v')
+  return(11);
+...
+```
+
+and now the old compiler accepts the new source. We install the resulting binary as the new official C compiler.  
+This is a deep concept. It is as close to a "learning" program as I have seen. You simply tell it once, then you can use this self-referencing definition.
+
+#### Stage 3
+
+```c
+compile(s);
+char *s;
+{
+  ...
+}
+```
+
+Again, in the C compiler, the snippet above represents the high level control of the C compiler where the routine "compile" is called to compile the next line of source. We can do a simple modification to the compiler that will deliberately miscompile source whenever a particular pattern is matched:
+
+```c
+compile(s);
+char *s;
+{
+  if (match(s, "pattern")){
+    compile("bug");
+    return;
+  }
+  ...
+}
+```
+
+If this were not deliberate, it would be called a compiler "bug". Since it is deliberate, it should be called a "Trojan horse".  
+The actual bug we planted in the compiler would match code in the UNIX "login" command. The replacement code would miscompile the login command so that it would accept either the intended encrypted password or a particular known password. Thus if this code wre installed in binary and the binary were user to compile the login command, we could log into that system as any user.
+
+The final step is to add a second Trojan horse to the one that already exists, the second pattern is aimed at the C compiler:
+
+```c
+compile(s);
+char *s;
+{
+  if (match(s, "pattern1")){
+    compile("bug1");
+    return;
+  }
+  if (match(s, "pattern2")){
+    compile("bug2");
+    return;
+  }
+  ...
+}
+```
+
+First we compile the modified source with the normal C compiler to produce a bugged binary. We install this binary as the official C. We can now remove the bugs from the source of the compiler and the new binary will reinsert the bugs whenever it is compiled. Of course, the login command will remain bugged with no trace in source anywhere.
+
+#### Moral
+
+The moral is obvious. You can't trust code that you did not totally create yourself. No amount of source-level verification or scrutiny will protect you from using untrusted code.  
+But let's moralize. We would like to criticize the press in its handling of the "hackers", the 414 gang, the Dalton gang, etc. The acts performed by these kids are vandalism at best and probably trespass and theft at worst. It is only the inadequacy of the criminal code that saves the hackers from very serious prosecution. The companies that are vulnerable to this activity, are pressing hard to update the criminal code.  
+There is an explosive situation brewing. On the one hand, the press, television and movies make heroes of vandals by calling them whiz kids. On the other hand, the acts performed by these kids will soon be punishable by years in prison.  
+The press must learn that misguided use of a computer is no more amazing than drunk driving of an automobile.
