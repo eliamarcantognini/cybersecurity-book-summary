@@ -315,6 +315,7 @@ Fundamental security design principles are:
 - Fail-safe default: it means access decisions should be based on permission rather than exclusion.
 - Complete mediation: it means every access must be checked against the access control mechanism. Systems should not rely on access decisions retrieved from a cache.
 - Open design: it means the design of a security mechanism should be open rather than secret. For example, although encryption keys must be secret, encryption algorithms should be open to public scrutiny.
+- Separation of privilege: a practice in which multiple privilege attributes are required to achieve access to a restricted resource.
 - Least privilege: it means every process and every user of the system should operate using the least set of privileges necessary to perform the task. The system security policy can identify and define the various roles of users or processes. Each role is assigned only those permissions needed to perform its functions.
 - Least common mechanism: it means the design should minimize the functions shared by different users, providing mutual security.
 - Psychological acceptability: it implies the security mechanisms should not interfere unduly with the work of users, and at the same time meet the needs of those who authorize access. If security mechanisms hinder the usability or accessibility of resources, users may opt to turn off those mechanisms.
